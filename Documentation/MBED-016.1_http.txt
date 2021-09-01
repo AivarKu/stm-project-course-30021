@@ -1,0 +1,1 @@
+https://os.mbed.com/cookbook/mbed-application-shield
