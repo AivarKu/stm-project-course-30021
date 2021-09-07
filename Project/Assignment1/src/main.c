@@ -13,6 +13,14 @@
 **********************************************************************/
 #include "stm32f30x_conf.h"
 #include "30021_io.h" // Input/output library for this course
+#define GetBit(data,BitNum) ((data) & (1<<(BitNum)))
+
+#if 0
+///////////////////////////////////////////////////////////////////////////
+//
+// Exe 1.1 - Joystick
+//
+///////////////////////////////////////////////////////////////////////////
 
 void initJoystickPins()
 {
@@ -54,33 +62,50 @@ void initJoystickPins()
     GPIO_Init(GPIOB, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
 }
 
-void printJoystick()
+uint8_t readJoystick()
 {
-    uint16_t dataWord;
-    uint8_t JoystickWord [5];
+    uint8_t gpioWord;
+    uint8_t joystickState;
 
-    // PC0
-    dataWord = GPIO_ReadInputData(GPIOC);
-    JoystickWord[0] = (dataWord & 1);
-    // PC1
-    JoystickWord[3] = (dataWord & 0b10) >> 1;
+    // PA4 - Up
+    gpioWord = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_4);
+    joystickState = gpioWord;
+    // PB0 - Down
+    gpioWord = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0);
+    joystickState |= gpioWord << 1;
+    // PC1 - Left
+    gpioWord = GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1);
+    joystickState |= gpioWord << 2;
+    // PC0 - Right
+    gpioWord = GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_0);
+    joystickState |= gpioWord << 3;
+    // PB5 - Center
+    gpioWord = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_5);
+    joystickState |= gpioWord << 4;
 
-    // PA4
-    dataWord = GPIO_ReadInputData(GPIOA);
-    JoystickWord[1] = (dataWord & 0b10000) >> 4;
+    return joystickState;
+}
 
-    // PB5
-    dataWord = GPIO_ReadInputData(GPIOB);
-    JoystickWord[2] = (dataWord & 0b100000) >> 5;
-    // PB0
-    JoystickWord[4] = (dataWord & 0b1);
+void printJoystick(uint8_t joystickState)
+{
+    printf("Joystick state: ");
 
+    if (GetBit(joystickState,0))
+        printf("UP ");
 
-    printf("PC0: %d\n", JoystickWord[0]);
-    printf("PA4: %d\n", JoystickWord[1]);
-    printf("PB5: %d\n", JoystickWord[2]);
-    printf("PC1: %d\n", JoystickWord[3]);
-    printf("PB0: %d\n\n", JoystickWord[4]);
+    if (GetBit(joystickState,1))
+        printf("DOWN ");
+
+    if (GetBit(joystickState,2))
+        printf("LEFT ");
+
+    if (GetBit(joystickState,3))
+        printf("RIGHT ");
+
+    if (GetBit(joystickState,4))
+        printf("CENTER ");
+
+    printf("\n");
 }
 
 int main(void)
@@ -94,9 +119,69 @@ int main(void)
 
     int a = 1;
 
+    uint8_t joystickState = 0;
+
     while(1)
     {
-        printJoystick();
+        joystickState = readJoystick();
+        printJoystick(joystickState);
+
+        for (int i = 0; i < 2000000; i++)
+            a++;
+    }
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////
+//
+// Exe 1.2 - RGB
+//
+///////////////////////////////////////////////////////////////////////////
+void initRGBpins()
+{
+    // Sets PA9 to output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as output
+    GPIO_InitStructAll.GPIO_OType = GPIO_OType_PP; // Set as Push-Pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_9; // Set so the configuration is on pin 9
+    GPIO_InitStructAll.GPIO_Speed = GPIO_Speed_2MHz; // Set speed to 2 MHz
+    GPIO_Init(GPIOA, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+
+    // Sets PC7 to output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as output
+    GPIO_InitStructAll.GPIO_OType = GPIO_OType_PP; // Set as Push-Pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_7; // Set so the configuration is on pin 9
+    GPIO_InitStructAll.GPIO_Speed = GPIO_Speed_2MHz; // Set speed to 2 MHz
+    GPIO_Init(GPIOC, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+
+    // Sets PB4 to output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as output
+    GPIO_InitStructAll.GPIO_OType = GPIO_OType_PP; // Set as Push-Pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_4; // Set so the configuration is on pin 9
+    GPIO_InitStructAll.GPIO_Speed = GPIO_Speed_2MHz; // Set speed to 2 MHz
+    GPIO_Init(GPIOB, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+}
+
+
+int main(void)
+{
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE); // Enable clock for GPIO Port A
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB,ENABLE); // Enable clock for GPIO Port B
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC,ENABLE); // Enable clock for GPIO Port C
+
+    init_usb_uart( 9600 ); // Initialize USB serial at 9600 baud
+    initJoystickPins();
+
+    int a = 1;
+
+    uint8_t joystickState = 0;
+
+    while(1)
+    {
+        joystickState = readJoystick();
+        printJoystick(joystickState);
 
         for (int i = 0; i < 2000000; i++)
             a++;
