@@ -463,6 +463,9 @@ void ADC_readExternalCalibration()
 {
     uint32_t tempVal = *(uint32_t *)(ADC_CALIBRATION_ADDRESS);
     adc_calibration_coeff = (float)(*(float*)&tempVal);
+
+    if (adc_calibration_coeff < 0.5 || adc_calibration_coeff > 1.5)
+        adc_calibration_coeff = 1.0f;
 }
 
 void ADC_runExteralCalibration()
