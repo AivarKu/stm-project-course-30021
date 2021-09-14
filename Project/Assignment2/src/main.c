@@ -15,6 +15,7 @@
 #include "30021_io.h" // LCD library
 #include "lcd.h"
 #include <string.h>
+#include "flash.h"
 
 ///////////////////////////////////////////////////////////////////////////
 //
@@ -84,10 +85,104 @@ int main(void)
 // Exe 2.3 - FLASH memory
 //
 ///////////////////////////////////////////////////////////////////////////
-#if 0
+
+void flashTesting()
+{
+    uint8_t oneByteVar = 111;           //One byte
+    uint16_t twoBytesVar = 22222;       //Two bytes
+    uint32_t fourBytesVar = 44444444;   //Four bytes
+    float floatVar = 7.77;              //Four bytes
+
+    int32_t address = 0x800FF00;        //Next page to be overwritten
+    uint32_t tempVal = 0;
+
+    //Reading what is there
+    printf("Before writing\n");
+    tempVal = *(uint16_t *)(address);
+    printf("1 byte data: %lu\n", tempVal);
+    tempVal = *(uint16_t *)(address + 2);
+    printf("2 byte data: %lu\n", tempVal);
+    tempVal = *(uint32_t *)(address + 4);
+    printf("4 byte data: %lu\n", tempVal);
+    tempVal = *(uint32_t *)(address + 8);
+    printf("float: %f\n", (float) tempVal);
+
+    //Ok, let's overwrite this with declared values
+    printf("Writing in progress...\n");
+    FLASH_Unlock();
+    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+    FLASH_ErasePage( address );
+    FLASH_ProgramHalfWord(address, (uint16_t) oneByteVar);
+    FLASH_ProgramHalfWord(address + 2, twoBytesVar);
+    FLASH_ProgramWord(address + 4, fourBytesVar);
+    FLASH_ProgramWord(address + 8, (uint32_t)(*(uint32_t*)&floatVar));
+    FLASH_Lock();
+
+    //Reading what is there
+    printf("Before writing\n");
+    tempVal = *(uint16_t *)(address);
+    printf("1 byte data: %lu\n", tempVal);
+    tempVal = *(uint16_t *)(address + 2);
+    printf("2 byte data: %lu\n", tempVal);
+    tempVal = *(uint32_t *)(address + 4);
+    printf("4 byte data: %lu\n", tempVal);
+    tempVal = *(uint32_t *)(address + 8);
+    printf("float: %f\n", (float)(*(float*)&tempVal));
+}
+
+#if 1
 int main(void)
 {
+    init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
+    /*
+    int32_t address = 0x0800F800;
+    uint16_t tempVal;
+    printf("Before writing\n");
+    for ( int i = 0 ; i < 10 ; i++ )
+    {
+        tempVal = *(uint16_t *)(address + i * 2); // Read Command
+        printf("%d\n", tempVal);
+    }
 
+    printf("Writing in progress...\n");
+    uint16_t data[10] = {0x0000, 0x000F, 0x00FF, 0x0F00, 0x0F0F, 0x0FF0, 0x0FFF, 0xF000, 0xF00F, 0xF0F0};
+    FLASH_Unlock();
+    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+    FLASH_ErasePage( address );
+    for ( int i = 0; i < 10; i++ )
+    {
+        FLASH_ProgramHalfWord(address + i * 2, data[i]);
+    }
+    FLASH_Lock();
+
+    printf("After writing\n");
+    for ( int i = 0 ; i < 10 ; i++ )
+    {
+        tempVal = *(uint16_t *)(address + i * 2); // Read Command
+        printf("%d\n", tempVal);
+
+    }
+    */
+
+    flashTesting();
+    /*
+    tempfloat = read_float_flash(PG31_BASE,0);
+    init_page_flash(PG31_BASE);
+    FLASH_Unlock();
+    write_float_flash(PG31_BASE,0,(float)1.0);
+    FLASH_Lock();
+    tempfloat = read_float_flash(PG31_BASE,0);
+    ...
+    tempval = read_word_flash(PG31_BASE,0);
+    if(tempval!=(uint32_t)0xDEADBEEF)
+    {
+        init_page_flash(PG31_BASE);
+        FLASH_Unlock();
+        write_word_flash(PG31_BASE,0,0xDEADBEEF);
+        FLASH_Lock();
+    }
+    tempval = read_hword_flash(PG31_BASE,0);
+    */
 }
 #endif
 
@@ -96,6 +191,7 @@ int main(void)
 // Exe 2.4 - ADC
 //
 ///////////////////////////////////////////////////////////////////////////
+#if 0
 void ADC_setup_PA()
 {
     // Enable clocks for peripherals
@@ -154,8 +250,9 @@ uint16_t ADC_measure_PA(uint8_t channel)
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == 0); // Wait for ADC read
     return ADC_GetConversionValue(ADC1); // Read the ADC value
 }
+#endif
 
-#if 1
+#if 0
 int main(void)
 {
     init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
