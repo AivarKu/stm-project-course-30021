@@ -50,7 +50,7 @@ int main(void)
 int main(void)
 {
     init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
-    printf("LCD!\n"); // Show the world you are alive!
+    printf("LCD strings!\n"); // Show the world you are alive!
 
     // Configure LCD
     init_spi_lcd();
@@ -130,7 +130,7 @@ void flashTesting()
     printf("float: %f\n", (float)(*(float*)&tempVal));
 }
 
-#if 1
+#if 0
 int main(void)
 {
     init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
@@ -191,11 +191,13 @@ int main(void)
 // Exe 2.4 - ADC
 //
 ///////////////////////////////////////////////////////////////////////////
-#if 0
+
+uint8_t adc_update_flag = 0;
+
 void ADC_setup_PA()
 {
     // Enable clocks for peripherals
-    RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div8);             // Set ADC clk to sys_clk/8
+    RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div4);             // Set ADC clk to sys_clk/8
     RCC_AHBPeriphClockCmd(ADC1, ENABLE);                // Enable clocking for ADC1
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); // Enable clocking for GPIOA
 
@@ -224,13 +226,13 @@ void ADC_setup_PA()
     ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b;
     ADC_InitStruct.ADC_DataAlign = ADC_DataAlign_Right;
     ADC_Init(ADC1, &ADC_InitStruct);
+}
 
+void ADC_SelfCalibrate()
+{
     // Calibrate ADC
     ADC_VoltageRegulatorCmd(ADC1,ENABLE);   // set internal reference voltage source and wait
     for(uint32_t i = 0; i<10000;i++);       //Wait for at least 10uS before continuing...
-
-    //ADC_Cmd(ADC1,DISABLE);
-    //while(ADC_GetDisableCmdStatus(ADC1)){} // wait for disable of ADC
 
     ADC_SelectCalibrationMode(ADC1,ADC_CalibrationMode_Single);
     ADC_StartCalibration(ADC1);
@@ -245,12 +247,66 @@ void ADC_setup_PA()
 
 uint16_t ADC_measure_PA(uint8_t channel)
 {
-    ADC_RegularChannelConfig(ADC1, channel, 1, ADC_SampleTime_1Cycles5);
+    ADC_RegularChannelConfig(ADC1, channel, 1, ADC_SampleTime_1Cycles5); //  Select ADC channel
     ADC_StartConversion(ADC1); // Start ADC read
     while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == 0); // Wait for ADC read
     return ADC_GetConversionValue(ADC1); // Read the ADC value
 }
-#endif
+
+void tim2_setup()
+{
+    // Timer
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2,ENABLE);
+
+    // System clock is 64 MHz
+    TIM_TimeBaseInitTypeDef TIM_InitStructure;
+    TIM_TimeBaseStructInit(&TIM_InitStructure);
+    TIM_InitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_InitStructure.TIM_Prescaler = 64000; // 64MHz / 64e3 = 1kHz
+    TIM_InitStructure.TIM_Period = 100; // 1kHz/100 = 10Hz iterrput period
+    TIM_TimeBaseInit(TIM2,&TIM_InitStructure);
+
+    // NVIC for timer
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+    NVIC_Init(&NVIC_InitStructure);
+
+    TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE);
+
+    TIM_Cmd(TIM2,ENABLE);
+}
+
+void TIM2_IRQHandler(void)
+{
+    if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
+    {
+        adc_update_flag = 1;
+        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+    }
+}
+
+void printLCD_ADC_int(uint8_t* fbuffer)
+{
+    uint16_t PA0_val = 0;
+    uint16_t PA1_val = 0;
+    char line1 [128];
+    char line2 [128];
+
+    PA0_val = ADC_measure_PA(ADC_Channel_1);    // Read PA0 ADC
+    PA1_val = ADC_measure_PA(ADC_Channel_2);    // Read PA1 ADC
+
+    // Write to LCD ADC values
+    sprintf(line1, "PA0 = %d", PA0_val);
+    sprintf(line2, "PA1 = %d", PA1_val);
+    lcd_write_string((uint8_t*)line1, fbuffer, 0, 0);
+    lcd_write_string((uint8_t*)line2, fbuffer, 0, 1);
+    lcd_push_buffer(fbuffer);
+}
 
 #if 0
 int main(void)
@@ -266,25 +322,227 @@ int main(void)
 
     // Setup ADC
     ADC_setup_PA();
+    ADC_SelfCalibrate();
 
-    // Variables for while(1) loop
+    // Setup TIM2 for ADC values timing on LCD
+    tim2_setup();
+
+    while(1)
+    {
+        if (adc_update_flag)
+        {
+            adc_update_flag = 0;
+            printLCD_ADC_int(&fbuffer);
+        }
+    }
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////
+//
+// Exe 2.5 - ADC self VREF calibration
+//
+///////////////////////////////////////////////////////////////////////////
+#define VREFINT_CAL *((uint16_t*) ((uint32_t) 0x1FFFF7BA))   //calibrated at 3.3V@ 30C
+
+volatile float VDDA = 0.0;
+
+void VREF_calibrate()
+{
+    ADC_VrefintCmd(ADC1,ENABLE); // setup ref voltage to channel 18
+    for(uint32_t i = 0; i<10000;i++); // Delay
+
+    // Setup ADC to measure VREFINT_DATA
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_18, 1, ADC_SampleTime_61Cycles5); // 16MHz/61=270kHz -> 3.7us > 2.2us
+    ADC_StartConversion(ADC1); // Start ADC read
+    while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == 0); // Wait for ADC read
+    uint16_t VREF_DATA =  ADC_GetConversionValue(ADC1); // Read the ADC value
+
+    ADC_VrefintCmd(ADC1,DISABLE);
+
+    // Calculate calibrated VDDA
+    VDDA = 3.3 * (float)VREFINT_CAL/(float)VREF_DATA;
+}
+
+void printLCD_ADC_float(uint8_t* fbuffer)
+{
     uint16_t PA0_val = 0;
     uint16_t PA1_val = 0;
     char line1 [128];
     char line2 [128];
 
+    PA0_val = ADC_measure_PA(ADC_Channel_1);    // Read PA0 ADC
+    PA1_val = ADC_measure_PA(ADC_Channel_2);    // Read PA1 ADC
+
+    // Write to LCD ADC values
+    sprintf(line1, "PA0 = %.3f", (float)PA0_val*VDDA/4096);
+    sprintf(line2, "PA1 = %.3f", (float)PA1_val*VDDA/4096);
+    lcd_write_string((uint8_t*)line1, fbuffer, 0, 0);
+    lcd_write_string((uint8_t*)line2, fbuffer, 0, 1);
+    lcd_push_buffer(fbuffer);
+}
+
+#if 0
+int main(void)
+{
+    init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
+    printf("ADC!\n"); // Show the world you are alive!
+
+    // Configure LCD
+    init_spi_lcd();
+
+    uint8_t fbuffer[LCD_BUFF_SIZE];         // Buffer to store LCD display
+    memset(fbuffer, 0x00, LCD_BUFF_SIZE);   // Initialize array
+
+    // Setup ADC
+    ADC_setup_PA();
+    ADC_SelfCalibrate();
+    VREF_calibrate();
+
+    // Setup TIM2 for ADC values timing on LCD
+    tim2_setup();
+
+
     while(1)
     {
-        PA0_val = ADC_measure_PA(ADC_Channel_1);    // Read PA0 ADC
-        PA1_val = ADC_measure_PA(ADC_Channel_2);    // Read PA1 ADC
-
-        // Write to LCD
-        sprintf(line1, "PA0 = %d", PA0_val);
-        sprintf(line2, "PA1 = %d", PA1_val);
-        lcd_write_string((uint8_t*)line1, fbuffer, 0, 0);
-        lcd_write_string((uint8_t*)line2, fbuffer, 0, 1);
-        lcd_push_buffer(fbuffer);
+        if (adc_update_flag)
+        {
+            adc_update_flag = 0;
+            printLCD_ADC_float(&fbuffer);
+        }
     }
+}
+#endif
 
+///////////////////////////////////////////////////////////////////////////
+//
+// Exe 2.6 - ADC external calibration
+//
+///////////////////////////////////////////////////////////////////////////
+volatile uint8_t runCalibration = 0;
+volatile float adc_calibration_coeff = 0.0;
+
+void EXTI4_IRQHandler(void)
+{
+    if (EXTI_GetITStatus(EXTI_Line4) != RESET)
+    {
+        runCalibration = 1;
+        EXTI_ClearITPendingBit(EXTI_Line4);
+    }
+}
+
+void setupPinInterrupt()
+{
+    // Enable clocks
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG,ENABLE);
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE); // Enable clock for GPIO Port A
+
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA,EXTI_PinSource4); // sets port A pin 4 to the IRQ
+
+    // define and set setting for EXTI
+    EXTI_InitTypeDef EXTI_InitStructure;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line4;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_Init(&EXTI_InitStructure);
+
+    // setup NVIC
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+#define ADC_CALIBRATION_ADDRESS 0x800FF00
+
+void ADC_readExternalCalibration()
+{
+    uint32_t tempVal = *(uint32_t *)(ADC_CALIBRATION_ADDRESS);
+    adc_calibration_coeff = (float)(*(float*)&tempVal);
+}
+
+void ADC_runExteralCalibration()
+{
+    // Read ADC 16 times
+    uint16_t ADC_vals[16];
+    for (int i = 0; i < 16; i++)
+        ADC_vals[i] = ADC_measure_PA(ADC_Channel_1);    // Read PA0 ADC
+
+    // Compute Calibration Value
+    float ADC_avg = 0.0;
+    for (int i = 0; i < 16; i++)
+        ADC_avg += ADC_vals[i];
+
+    ADC_avg = ADC_avg / 16;
+
+    adc_calibration_coeff = 3.2/(ADC_avg/4096*VDDA);
+
+    // Store Calibration Value
+    FLASH_Unlock();
+    FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+    FLASH_ErasePage( ADC_CALIBRATION_ADDRESS );
+    FLASH_ProgramWord(ADC_CALIBRATION_ADDRESS, (uint32_t)(*(uint32_t*)&adc_calibration_coeff));
+    FLASH_Lock();
+}
+
+void printLCD_ADC_float_calibrated(uint8_t* fbuffer)
+{
+    uint16_t PA0_val = 0;
+    uint16_t PA1_val = 0;
+    char line1 [128];
+    char line2 [128];
+
+    PA0_val = ADC_measure_PA(ADC_Channel_1);    // Read PA0 ADC
+    PA1_val = ADC_measure_PA(ADC_Channel_2);    // Read PA1 ADC
+
+    // Write to LCD ADC values
+    sprintf(line1, "PA0 = %.3f", (float)PA0_val*VDDA*adc_calibration_coeff/4096);
+    sprintf(line2, "PA1 = %.3f", (float)PA1_val*VDDA*adc_calibration_coeff/4096);
+    lcd_write_string((uint8_t*)line1, fbuffer, 0, 0);
+    lcd_write_string((uint8_t*)line2, fbuffer, 0, 1);
+    lcd_push_buffer(fbuffer);
+}
+
+#if 1
+int main(void)
+{
+    init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
+    printf("ADC!\n"); // Show the world you are alive!
+
+    // Configure LCD
+    init_spi_lcd();
+
+    uint8_t fbuffer[LCD_BUFF_SIZE];         // Buffer to store LCD display
+    memset(fbuffer, 0x00, LCD_BUFF_SIZE);   // Initialize array
+
+    // Setup ADC
+    ADC_setup_PA();
+    ADC_SelfCalibrate();
+    VREF_calibrate();
+    ADC_readExternalCalibration();
+
+    // Setup TIM2 for ADC values timing on LCD
+    tim2_setup();
+
+    // Setup EXTI interrupt to run calibration on joystick press
+    setupPinInterrupt();
+
+    while(1)
+    {
+        if (runCalibration)
+        {
+            runCalibration = 0;
+            ADC_runExteralCalibration();
+        }
+        if (adc_update_flag)
+        {
+            adc_update_flag = 0;
+            printLCD_ADC_float_calibrated(&fbuffer);
+        }
+    }
 }
 #endif

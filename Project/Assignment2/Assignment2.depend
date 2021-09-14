@@ -196,11 +196,12 @@
 	"stm32f30x_conf.h"
 	<stdio.h>
 
-1631549641 source:c:\users\amo\documents\digitalinstrumentation\project\assignment2\src\main.c
+1631630910 source:c:\users\amo\documents\digitalinstrumentation\project\assignment2\src\main.c
 	"stm32f30x_conf.h"
 	"30021_io.h"
 	"lcd.h"
 	<string.h>
+	"flash.h"
 
 1631544390 source:c:\users\amo\documents\digitalinstrumentation\project\assignment2\src\startup_stm32f30x.s
 
