@@ -130,12 +130,7 @@ void flashTesting()
     printf("float: %f\n", (float)(*(float*)&tempVal));
 }
 
-<<<<<<< HEAD
-#if 0
-int main(void)
-=======
 void flashPattern()
->>>>>>> b05424d (Completed flash exercise)
 {
     int32_t address = 0x800F800;        //Next page to be overwritten
     uint32_t tempVal = 0;
