@@ -523,6 +523,7 @@ int main()
 
     //TIM_PWMIConfig(TIM2, &TIM_ICInitStructure);
 
+    // TIM2 setup
     TIM_TimeBaseInitTypeDef TIM_InitStructure;
 
     TIM_TimeBaseStructInit(&TIM_InitStructure);
@@ -532,10 +533,11 @@ int main()
     TIM_TimeBaseInit(TIM2,&TIM_InitStructure);
 
 
-    // Internal Clock frequency is 64 MHz
-    TIM2->CCMR1 = TIM_CCMR1_CC2S_1 | TIM_CCMR1_CC1S_0;
-    TIM2->SMCR = TIM_SMCR_TS_2 | TIM_SMCR_TS_0 | TIM_SMCR_SMS_2;
-    TIM2->CCER = TIM_CCER_CC2P | TIM_CCER_CC1E | TIM_CCER_CC2E;
+    // Set Input Capture in TIM2 to PWM mode
+    TIM2->CCMR1 = TIM_CCMR1_CC2S_1 | TIM_CCMR1_CC1S_0; // Configure CC1 channel as input, IC1 is mapped on TI1
+    TIM2->SMCR = TIM_SMCR_TS_2 | TIM_SMCR_TS_0;        // Set trigger to TI1FP1
+    TIM2->SMCR |= TIM_SMCR_SMS_2;                      // Set slave to Reset Mode
+    TIM2->CCER = TIM_CCER_CC2P | TIM_CCER_CC1E | TIM_CCER_CC2E; // Define polarity and enable Capture and Compare Modules
 
     // Enable the CC2 Interrupt Request
     TIM_ITConfig(TIM2, TIM_IT_CC2, ENABLE);
