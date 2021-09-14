@@ -105,7 +105,7 @@ void flashTesting()
     tempVal = *(uint32_t *)(address + 4);
     printf("4 byte data: %lu\n", tempVal);
     tempVal = *(uint32_t *)(address + 8);
-    printf("float: %f\n", (float) tempVal);
+    printf("float: %f\n", (float)(*(float*)&tempVal));
 
     //Ok, let's overwrite this with declared values
     printf("Writing in progress...\n");
@@ -130,59 +130,35 @@ void flashTesting()
     printf("float: %f\n", (float)(*(float*)&tempVal));
 }
 
+<<<<<<< HEAD
 #if 0
 int main(void)
+=======
+void flashPattern()
+>>>>>>> b05424d (Completed flash exercise)
 {
-    init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
-    /*
-    int32_t address = 0x0800F800;
-    uint16_t tempVal;
-    printf("Before writing\n");
-    for ( int i = 0 ; i < 10 ; i++ )
-    {
-        tempVal = *(uint16_t *)(address + i * 2); // Read Command
-        printf("%d\n", tempVal);
-    }
-
-    printf("Writing in progress...\n");
-    uint16_t data[10] = {0x0000, 0x000F, 0x00FF, 0x0F00, 0x0F0F, 0x0FF0, 0x0FFF, 0xF000, 0xF00F, 0xF0F0};
+    int32_t address = 0x800F800;        //Next page to be overwritten
+    uint32_t tempVal = 0;
+    int32_t counter = 0;
     FLASH_Unlock();
     FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
     FLASH_ErasePage( address );
-    for ( int i = 0; i < 10; i++ )
+    for(int i = 0; i < 512; i++)
     {
-        FLASH_ProgramHalfWord(address + i * 2, data[i]);
+        tempVal += 0xFF;
+        FLASH_ProgramWord(address + counter, tempVal);
+
+        counter += 4;
     }
     FLASH_Lock();
+}
 
-    printf("After writing\n");
-    for ( int i = 0 ; i < 10 ; i++ )
-    {
-        tempVal = *(uint16_t *)(address + i * 2); // Read Command
-        printf("%d\n", tempVal);
-
-    }
-    */
-
-    flashTesting();
-    /*
-    tempfloat = read_float_flash(PG31_BASE,0);
-    init_page_flash(PG31_BASE);
-    FLASH_Unlock();
-    write_float_flash(PG31_BASE,0,(float)1.0);
-    FLASH_Lock();
-    tempfloat = read_float_flash(PG31_BASE,0);
-    ...
-    tempval = read_word_flash(PG31_BASE,0);
-    if(tempval!=(uint32_t)0xDEADBEEF)
-    {
-        init_page_flash(PG31_BASE);
-        FLASH_Unlock();
-        write_word_flash(PG31_BASE,0,0xDEADBEEF);
-        FLASH_Lock();
-    }
-    tempval = read_hword_flash(PG31_BASE,0);
-    */
+#if 1
+int main(void)
+{
+    init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
+    //flashTesting();
+    flashPattern();
 }
 #endif
 

@@ -442,7 +442,7 @@
 1631622104 source:c:\users\gustaw\desktop\di\exercises\stm-project-course-30021\project\assignment2\src\system_stm32f30x.c
 	"stm32f30x.h"
 
-1631628724 source:c:\users\gustaw\desktop\di\exercises\stm-project-course-30021\project\assignment2\src\main.c
+1631631780 source:c:\users\gustaw\desktop\di\exercises\stm-project-course-30021\project\assignment2\src\main.c
 	"stm32f30x_conf.h"
 	"30021_io.h"
 	"lcd.h"
