@@ -148,7 +148,7 @@ void flashPattern()
     FLASH_Lock();
 }
 
-#if 1
+#if 0
 int main(void)
 {
     init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
@@ -279,7 +279,7 @@ void printLCD_ADC_int(uint8_t* fbuffer)
     lcd_push_buffer(fbuffer);
 }
 
-#if 0
+#if 1
 int main(void)
 {
     init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud
@@ -437,6 +437,8 @@ void ADC_readExternalCalibration()
 
     if (adc_calibration_coeff < 0.5 || adc_calibration_coeff > 1.5)
         adc_calibration_coeff = 1.0f;
+
+    printf("Calibration coefficent is: %.5f\n", adc_calibration_coeff);
 }
 
 void ADC_runExteralCalibration()
@@ -454,6 +456,8 @@ void ADC_runExteralCalibration()
     ADC_avg = ADC_avg / 16;
 
     adc_calibration_coeff = 3.2/(ADC_avg/4096*VDDA);
+
+    printf("Calibration coefficent is: %.5f\n", adc_calibration_coeff);
 
     // Store Calibration Value
     FLASH_Unlock();
@@ -481,7 +485,7 @@ void printLCD_ADC_float_calibrated(uint8_t* fbuffer)
     lcd_push_buffer(fbuffer);
 }
 
-#if 1
+#if 0
 int main(void)
 {
     init_usb_uart( 9600 ); // Initialize USB serial emulation at 9600 baud

@@ -16,39 +16,23 @@
 
 void init_PWM()
 {
-    RCC_APB2PeriphResetCmd(RCC_APB2Periph_TIM16,ENABLE); //APB2 due to it being timer 16
-    TIM_TimeBaseInitTypeDef TIM_InitStructure;
+	// Configure TIM16 as channel 4 PWM output on pin PB11
+	RCC->APB2ENR|= RCC_APB2ENR_TIM16EN;					// Enable clock for TIM16
+	TIM16->CR1	|= TIM_CR1_ARPE;						// Enable the ARR preload register
+	TIM16->CCMR1|= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 |TIM_CCMR1_OC1PE; // Enable channel 1 in PWM mode 1, enable ch1 output cc preload register
 
-    TIM_TimeBaseStructInit(&TIM_InitStructure);
-    TIM_InitStructure.TIM_ClockDivision = 0;
-    TIM_InitStructure.TIM_Period = 0xFFFFFFFF;
-    //TIM_InitStructure.TIM_Period = 0xFE;
-    TIM_InitStructure.TIM_Prescaler = 6400;   // Will count at 10 KHz
-    TIM_TimeBaseInit(TIM16, &TIM_InitStructure);
+	//TIM16->DIER	|= (TIM_DIER_CC1IE |TIM_DIER_UIE);		// Enable interrupts on ch1 compare, update event
+	TIM16->CCER |= TIM_CCER_CC1E;						// Enable Channel 1
+	TIM16->PSC 	 = 25-1;							    // Load prescaler value - 64 MHz/25 = 2.56MHz
+	TIM16->ARR 	 = 256-1;							    // Load signal period - 2.56 MHz/256 = 10kHz
+	TIM16->CCR1  = 126;							        // Load PWM dutycycle to ch1 cr
+	TIM16->EGR 	|= TIM_EGR_UG;							// Generate an event to update shadow registers
+	TIM16->BDTR |= TIM_BDTR_MOE;                        // Main output enable
+	TIM16->CR1  |= TIM_CR1_CEN;                         // Enable clock for TIM16
 
-
-    /*
-    TIM16->CCMR1 |= TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;
-    TIM16->CCER |= TIM_CCER_CC1E;
-    TIM16->ARR = 6500;
-    TIM16->CCR1 = 3000;
-    TIM16->EGR |= TIM_EGR_UG;
-    TIM16->CR1 |= TIM_CR1_ARPE |TIM_CR1_CEN;
-    */
-
-    //PWM init
-    TIM_OCInitTypeDef TIM_OCInitStruct;
-    TIM_OCInitStruct.TIM_OCMode = TIM_OCMode_PWM1;
-    TIM_OCInitStruct.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStruct.TIM_OCPolarity = TIM_OCPolarity_High;
-    TIM_OC1Init(TIM16, &TIM_OCInitStruct);
-    TIM_OC1PreloadConfig(TIM16, TIM_OCPreload_Enable);
-
-    TIM_CtrlPWMOutputs(TIM16, ENABLE);
-    TIM_SetCompare1(TIM16, 127);
-    TIM_Cmd(TIM16, ENABLE);
-    }
-
+	//NVIC_SetPriority(TIM1_UP_TIM16_IRQn, NVIC_EncodePriority(0, 1, 1));
+	//NVIC_EnableIRQ(TIM1_UP_TIM16_IRQn);
+}
 
 
 void init_AF()
@@ -72,14 +56,14 @@ void init_AF()
 
 int main(void)
 {
+    SystemInit();
+
     init_usb_uart(9600);
-    init_AF();
-    init_PWM();
+    init_AF();  // Connect pin PA6 to TIM16 channel 1
+    init_PWM(); // Init PWM using TIM16 on channel 1
 
   while(1)
   {
-    printf("Test");
-
-    for(int i = 0; i < 2000000; i++);
+      for(int i = 0; i < 200000; i++);
   }
 }
