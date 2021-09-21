@@ -18,12 +18,5 @@ void uart_putc(uint8_t c);
 uint8_t uart_getc();
 void init_usb_uart(uint32_t baud);
 
-/*****************************/
-/*** LCD Control Functions ***/
-/*****************************/
-void init_spi_lcd();
-void lcd_transmit_byte(uint8_t data);
-void lcd_push_buffer(uint8_t* buffer);
-void lcd_reset();
 
 #endif /* _30021_IO_H_ */

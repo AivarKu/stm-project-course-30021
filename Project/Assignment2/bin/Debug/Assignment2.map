@@ -408,7 +408,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_can.o
  .debug_macro   0x00000000      0x3c9 obj\debug\spl\src\stm32f30x_can.o
  .debug_line    0x00000000      0x7a8 obj\debug\spl\src\stm32f30x_can.o
- .debug_str     0x00000000    0x52ab4 obj\debug\spl\src\stm32f30x_can.o
+ .debug_str     0x00000000    0x52aa4 obj\debug\spl\src\stm32f30x_can.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_can.o
  .debug_frame   0x00000000      0x3f0 obj\debug\spl\src\stm32f30x_can.o
  .ARM.attributes
@@ -511,7 +511,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_comp.o
  .debug_macro   0x00000000      0x22b obj\debug\spl\src\stm32f30x_comp.o
  .debug_line    0x00000000      0x4db obj\debug\spl\src\stm32f30x_comp.o
- .debug_str     0x00000000    0x52485 obj\debug\spl\src\stm32f30x_comp.o
+ .debug_str     0x00000000    0x52475 obj\debug\spl\src\stm32f30x_comp.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_comp.o
  .debug_frame   0x00000000      0x150 obj\debug\spl\src\stm32f30x_comp.o
  .ARM.attributes
@@ -626,7 +626,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_crc.o
  .debug_macro   0x00000000       0x40 obj\debug\spl\src\stm32f30x_crc.o
  .debug_line    0x00000000      0x549 obj\debug\spl\src\stm32f30x_crc.o
- .debug_str     0x00000000    0x524f2 obj\debug\spl\src\stm32f30x_crc.o
+ .debug_str     0x00000000    0x524e2 obj\debug\spl\src\stm32f30x_crc.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_crc.o
  .debug_frame   0x00000000      0x220 obj\debug\spl\src\stm32f30x_crc.o
  .ARM.attributes
@@ -746,7 +746,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_dac.o
  .debug_macro   0x00000000      0x190 obj\debug\spl\src\stm32f30x_dac.o
  .debug_line    0x00000000      0x59b obj\debug\spl\src\stm32f30x_dac.o
- .debug_str     0x00000000    0x526e6 obj\debug\spl\src\stm32f30x_dac.o
+ .debug_str     0x00000000    0x526d6 obj\debug\spl\src\stm32f30x_dac.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_dac.o
  .debug_frame   0x00000000      0x2ac obj\debug\spl\src\stm32f30x_dac.o
  .ARM.attributes
@@ -843,7 +843,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_dbgmcu.o
  .debug_macro   0x00000000       0x88 obj\debug\spl\src\stm32f30x_dbgmcu.o
  .debug_line    0x00000000      0x48e obj\debug\spl\src\stm32f30x_dbgmcu.o
- .debug_str     0x00000000    0x523f3 obj\debug\spl\src\stm32f30x_dbgmcu.o
+ .debug_str     0x00000000    0x523e3 obj\debug\spl\src\stm32f30x_dbgmcu.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_dbgmcu.o
  .debug_frame   0x00000000       0xc8 obj\debug\spl\src\stm32f30x_dbgmcu.o
  .ARM.attributes
@@ -951,7 +951,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_dma.o
  .debug_macro   0x00000000      0x3a2 obj\debug\spl\src\stm32f30x_dma.o
  .debug_line    0x00000000      0x57c obj\debug\spl\src\stm32f30x_dma.o
- .debug_str     0x00000000    0x52a24 obj\debug\spl\src\stm32f30x_dma.o
+ .debug_str     0x00000000    0x52a14 obj\debug\spl\src\stm32f30x_dma.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_dma.o
  .debug_frame   0x00000000      0x1c8 obj\debug\spl\src\stm32f30x_dma.o
  .ARM.attributes
@@ -1182,7 +1182,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_flash.o
  .debug_macro   0x00000000      0x1de obj\debug\spl\src\stm32f30x_flash.o
  .debug_line    0x00000000      0x6f7 obj\debug\spl\src\stm32f30x_flash.o
- .debug_str     0x00000000    0x52791 obj\debug\spl\src\stm32f30x_flash.o
+ .debug_str     0x00000000    0x52781 obj\debug\spl\src\stm32f30x_flash.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_flash.o
  .debug_frame   0x00000000      0x428 obj\debug\spl\src\stm32f30x_flash.o
  .ARM.attributes
@@ -1448,7 +1448,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_i2c.o
  .debug_macro   0x00000000      0x294 obj\debug\spl\src\stm32f30x_i2c.o
  .debug_line    0x00000000      0x7c4 obj\debug\spl\src\stm32f30x_i2c.o
- .debug_str     0x00000000    0x5289d obj\debug\spl\src\stm32f30x_i2c.o
+ .debug_str     0x00000000    0x5288d obj\debug\spl\src\stm32f30x_i2c.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_i2c.o
  .debug_frame   0x00000000      0x69c obj\debug\spl\src\stm32f30x_i2c.o
  .ARM.attributes
@@ -1549,7 +1549,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_iwdg.o
  .debug_macro   0x00000000       0x6a obj\debug\spl\src\stm32f30x_iwdg.o
  .debug_line    0x00000000      0x4ab obj\debug\spl\src\stm32f30x_iwdg.o
- .debug_str     0x00000000    0x5245d obj\debug\spl\src\stm32f30x_iwdg.o
+ .debug_str     0x00000000    0x5244d obj\debug\spl\src\stm32f30x_iwdg.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_iwdg.o
  .debug_frame   0x00000000      0x118 obj\debug\spl\src\stm32f30x_iwdg.o
  .ARM.attributes
@@ -1746,7 +1746,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_opamp.o
  .debug_macro   0x00000000      0x106 obj\debug\spl\src\stm32f30x_opamp.o
  .debug_line    0x00000000      0x55e obj\debug\spl\src\stm32f30x_opamp.o
- .debug_str     0x00000000    0x525c3 obj\debug\spl\src\stm32f30x_opamp.o
+ .debug_str     0x00000000    0x525b3 obj\debug\spl\src\stm32f30x_opamp.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_opamp.o
  .debug_frame   0x00000000      0x268 obj\debug\spl\src\stm32f30x_opamp.o
  .ARM.attributes
@@ -1853,7 +1853,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_pwr.o
  .debug_macro   0x00000000       0xb2 obj\debug\spl\src\stm32f30x_pwr.o
  .debug_line    0x00000000      0x522 obj\debug\spl\src\stm32f30x_pwr.o
- .debug_str     0x00000000    0x52624 obj\debug\spl\src\stm32f30x_pwr.o
+ .debug_str     0x00000000    0x52614 obj\debug\spl\src\stm32f30x_pwr.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_pwr.o
  .debug_frame   0x00000000      0x18c obj\debug\spl\src\stm32f30x_pwr.o
  .ARM.attributes
@@ -2190,7 +2190,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_rtc.o
  .debug_macro   0x00000000      0x54b obj\debug\spl\src\stm32f30x_rtc.o
  .debug_line    0x00000000      0xa12 obj\debug\spl\src\stm32f30x_rtc.o
- .debug_str     0x00000000    0x52e9d obj\debug\spl\src\stm32f30x_rtc.o
+ .debug_str     0x00000000    0x52e8d obj\debug\spl\src\stm32f30x_rtc.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_rtc.o
  .debug_frame   0x00000000      0x818 obj\debug\spl\src\stm32f30x_rtc.o
  .ARM.attributes
@@ -2437,7 +2437,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_syscfg.o
  .debug_macro   0x00000000      0x1d9 obj\debug\spl\src\stm32f30x_syscfg.o
  .debug_line    0x00000000      0x548 obj\debug\spl\src\stm32f30x_syscfg.o
- .debug_str     0x00000000    0x5270c obj\debug\spl\src\stm32f30x_syscfg.o
+ .debug_str     0x00000000    0x526fc obj\debug\spl\src\stm32f30x_syscfg.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_syscfg.o
  .debug_frame   0x00000000      0x230 obj\debug\spl\src\stm32f30x_syscfg.o
  .ARM.attributes
@@ -2998,7 +2998,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x35 obj\debug\spl\src\stm32f30x_wwdg.o
  .debug_macro   0x00000000       0x2e obj\debug\spl\src\stm32f30x_wwdg.o
  .debug_line    0x00000000      0x4c4 obj\debug\spl\src\stm32f30x_wwdg.o
- .debug_str     0x00000000    0x52476 obj\debug\spl\src\stm32f30x_wwdg.o
+ .debug_str     0x00000000    0x52466 obj\debug\spl\src\stm32f30x_wwdg.o
  .comment       0x00000000       0x6f obj\debug\spl\src\stm32f30x_wwdg.o
  .debug_frame   0x00000000      0x134 obj\debug\spl\src\stm32f30x_wwdg.o
  .ARM.attributes
@@ -3200,7 +3200,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x89 obj\debug\src\flash.o
  .debug_macro   0x00000000       0x1c obj\debug\src\flash.o
  .debug_line    0x00000000      0x49f obj\debug\src\flash.o
- .debug_str     0x00000000    0x52404 obj\debug\src\flash.o
+ .debug_str     0x00000000    0x523f4 obj\debug\src\flash.o
  .comment       0x00000000       0x6f obj\debug\src\flash.o
  .debug_frame   0x00000000      0x118 obj\debug\src\flash.o
  .ARM.attributes
@@ -4660,7 +4660,7 @@ OUTPUT(bin\Debug\Assignment2.elf elf32-littlearm)
  .comment       0x0000006e       0x6f obj\debug\src\main.o
  .comment       0x0000006e       0x6f obj\debug\src\system_stm32f30x.o
 
-.debug_info     0x00000000     0x8ff5
+.debug_info     0x00000000     0x8fe5
  .debug_info    0x00000000     0x1327 obj\debug\spl\src\stm32f30x_adc.o
  .debug_info    0x00001327      0x3cc obj\debug\spl\src\stm32f30x_exti.o
  .debug_info    0x000016f3      0x61a obj\debug\spl\src\stm32f30x_gpio.o
@@ -4672,8 +4672,8 @@ OUTPUT(bin\Debug\Assignment2.elf elf32-littlearm)
  .debug_info    0x00006921      0xd55 obj\debug\src\30021_io.o
  .debug_info    0x00007676      0x5d6 obj\debug\src\lcd.o
  .debug_info    0x00007c4c      0xea7 obj\debug\src\main.o
- .debug_info    0x00008af3       0x92 obj\debug\src\startup_stm32f30x.o
- .debug_info    0x00008b85      0x470 obj\debug\src\system_stm32f30x.o
+ .debug_info    0x00008af3       0x82 obj\debug\src\startup_stm32f30x.o
+ .debug_info    0x00008b75      0x470 obj\debug\src\system_stm32f30x.o
 
 .debug_abbrev   0x00000000     0x13bd
  .debug_abbrev  0x00000000      0x197 obj\debug\spl\src\stm32f30x_adc.o
@@ -4832,30 +4832,30 @@ OUTPUT(bin\Debug\Assignment2.elf elf32-littlearm)
  .debug_line    0x00005366       0xbb obj\debug\src\startup_stm32f30x.o
  .debug_line    0x00005421      0x493 obj\debug\src\system_stm32f30x.o
 
-.debug_str      0x00000000    0x59f18
- .debug_str     0x00000000    0x52c09 obj\debug\spl\src\stm32f30x_adc.o
-                              0x52db3 (size before relaxing)
- .debug_str     0x00052c09      0x1e8 obj\debug\spl\src\stm32f30x_exti.o
-                              0x52536 (size before relaxing)
- .debug_str     0x00052df1      0x29c obj\debug\spl\src\stm32f30x_gpio.o
-                              0x52633 (size before relaxing)
- .debug_str     0x0005308d      0x21d obj\debug\spl\src\stm32f30x_misc.o
-                              0x5258c (size before relaxing)
- .debug_str     0x000532aa      0xa51 obj\debug\spl\src\stm32f30x_rcc.o
-                              0x52de7 (size before relaxing)
- .debug_str     0x00053cfb      0x4b5 obj\debug\spl\src\stm32f30x_spi.o
-                              0x529c4 (size before relaxing)
- .debug_str     0x000541b0      0xdea obj\debug\spl\src\stm32f30x_tim.o
-                              0x531da (size before relaxing)
- .debug_str     0x00054f9a      0x7e5 obj\debug\spl\src\stm32f30x_usart.o
-                              0x52cbb (size before relaxing)
- .debug_str     0x0005577f     0x3e9a obj\debug\src\30021_io.o
-                              0x56493 (size before relaxing)
- .debug_str     0x00059619      0x134 obj\debug\src\lcd.o
-                              0x54f48 (size before relaxing)
- .debug_str     0x0005974d      0x748 obj\debug\src\main.o
+.debug_str      0x00000000    0x59ec6
+ .debug_str     0x00000000    0x52bf9 obj\debug\spl\src\stm32f30x_adc.o
+                              0x52da3 (size before relaxing)
+ .debug_str     0x00052bf9      0x1e8 obj\debug\spl\src\stm32f30x_exti.o
+                              0x52526 (size before relaxing)
+ .debug_str     0x00052de1      0x29c obj\debug\spl\src\stm32f30x_gpio.o
+                              0x52623 (size before relaxing)
+ .debug_str     0x0005307d      0x21d obj\debug\spl\src\stm32f30x_misc.o
+                              0x5257c (size before relaxing)
+ .debug_str     0x0005329a      0xa51 obj\debug\spl\src\stm32f30x_rcc.o
+                              0x52dd7 (size before relaxing)
+ .debug_str     0x00053ceb      0x4b5 obj\debug\spl\src\stm32f30x_spi.o
+                              0x529b4 (size before relaxing)
+ .debug_str     0x000541a0      0xdea obj\debug\spl\src\stm32f30x_tim.o
+                              0x531ca (size before relaxing)
+ .debug_str     0x00054f8a      0x7e5 obj\debug\spl\src\stm32f30x_usart.o
+                              0x52cab (size before relaxing)
+ .debug_str     0x0005576f     0x3e9a obj\debug\src\30021_io.o
+                              0x56483 (size before relaxing)
+ .debug_str     0x00059609      0x134 obj\debug\src\lcd.o
+                              0x54f38 (size before relaxing)
+ .debug_str     0x0005973d      0x706 obj\debug\src\main.o
                               0x56b10 (size before relaxing)
- .debug_str     0x00059e95       0x83 obj\debug\src\system_stm32f30x.o
+ .debug_str     0x00059e43       0x83 obj\debug\src\system_stm32f30x.o
                               0x52469 (size before relaxing)
 
 .debug_frame    0x00000000     0x4444

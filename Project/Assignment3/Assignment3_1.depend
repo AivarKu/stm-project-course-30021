@@ -208,7 +208,7 @@
 1631958253 source:c:\users\amo\documents\digitalinstrumentation\project\assignment3\spl\src\30021_io.c
 	"30021_io.h"
 
-1631958253 c:\users\amo\documents\digitalinstrumentation\project\assignment3\inc\30021_io.h
+1632230342 c:\users\amo\documents\digitalinstrumentation\project\assignment3\inc\30021_io.h
 	"stm32f30x_conf.h"
 	<stdio.h>
 
@@ -407,7 +407,21 @@
 1631958253 source:c:\users\amo\documents\digitalinstrumentation\project\assignment3\src\system_stm32f30x.c
 	"stm32f30x.h"
 
-1632219683 source:c:\users\amo\documents\digitalinstrumentation\project\assignment3\src\main.c
+1632231532 source:c:\users\amo\documents\digitalinstrumentation\project\assignment3\src\main.c
 	"stm32f30x_conf.h"
 	"30021_io.h"
+	"lcd.h"
+
+1631545805 source:c:\users\amo\documents\digitalinstrumentation\project\assignment3\src\30021_io.c
+	"30021_io.h"
+
+1631543947 source:c:\users\amo\documents\digitalinstrumentation\project\assignment3\src\lcd.c
+	"lcd.h"
+	"charset.h"
+
+1631546294 c:\users\amo\documents\digitalinstrumentation\project\assignment3\inc\lcd.h
+	"stm32f30x_conf.h"
+	<string.h>
+
+1631543959 c:\users\amo\documents\digitalinstrumentation\project\assignment3\inc\charset.h
 
