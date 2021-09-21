@@ -45,7 +45,7 @@ void init_AF()
  {
 
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA,ENABLE); // Enable clock for GPIO Port A
-
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC,ENABLE);
     // Connect Alternative function AF_1 to PA6
     GPIO_InitTypeDef GPIO_InitStructAll; // Define typedef struct for setting pins
 
@@ -59,6 +59,78 @@ void init_AF()
     //Sets pin y at port x to alternative function z
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource6,GPIO_AF_1);
  }
+void initPins ()
+{
+    GPIO_InitTypeDef GPIO_InitStructAll;
+        // Set PC2 as output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as input
+    GPIO_InitStructAll.GPIO_PuPd = GPIO_OType_PP; // OUT-put no pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_2; // Set so the configuration is on pin 2
+    GPIO_Init(GPIOC, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+
+            // Set PC2 as output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as input
+    GPIO_InitStructAll.GPIO_PuPd = GPIO_OType_PP; // OUT-put no pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_3; // Set so the configuration is on pin 3
+    GPIO_Init(GPIOC, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+
+            // Set PC2 as output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as input
+    GPIO_InitStructAll.GPIO_PuPd = GPIO_OType_PP; // OUT-put no pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_15; // Set so the configuration is on pin 3
+    GPIO_Init(GPIOC, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+
+            // Set PC2 as output
+    GPIO_StructInit(&GPIO_InitStructAll); // Initialize GPIO struct
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_OUT; // Set as input
+    GPIO_InitStructAll.GPIO_PuPd = GPIO_OType_PP; // OUT-put no pull
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_14; // Set so the configuration is on pin 2
+    GPIO_Init(GPIOC, &GPIO_InitStructAll); // Setup of GPIO with the settings chosen
+}
+
+
+void controlstep (char word)
+{
+    if(word == 0b0101)
+    {
+        GPIO_ResetBits(GPIOC, GPIO_Pin_3);
+        GPIO_SetBits(GPIOC, GPIO_Pin_2);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_15);
+        GPIO_SetBits(GPIOC, GPIO_Pin_14);
+    }
+    else if (word == 0b1001)
+    {
+        GPIO_SetBits(GPIOC, GPIO_Pin_3);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_2);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_15);
+        GPIO_SetBits(GPIOC, GPIO_Pin_14);
+    }
+    else if (word ==  0b1010)
+    {
+        GPIO_SetBits(GPIOC, GPIO_Pin_3);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_2);
+        GPIO_SetBits(GPIOC, GPIO_Pin_15);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_14);
+    }
+    else if (word ==  0b0110)
+    {
+        GPIO_ResetBits(GPIOC, GPIO_Pin_3);
+        GPIO_SetBits(GPIOC, GPIO_Pin_2);
+        GPIO_SetBits(GPIOC, GPIO_Pin_15);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_14);
+    }
+    else
+    {
+        GPIO_ResetBits(GPIOC, GPIO_Pin_3);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_2);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_15);
+        GPIO_ResetBits(GPIOC, GPIO_Pin_14);
+    }
+
+}
 
 int main(void)
 {
@@ -67,31 +139,42 @@ int main(void)
     init_usb_uart(9600);
     init_AF();  // Connect pin PA6 to TIM16 channel 1
     init_PWM(); // Init PWM using TIM16 on channel 1
+    initPins();
+    char position[4] = {0b0101, 0b1001, 0b1010, 0b0110};
+    char word;
 
-    while(1)
-    {
-        for(int i = 0; i < 200000; i++);
-    }
+
+  while(1)
+  {
+      switch(uart_getc())
+      {
+          case '1': putchar('1');
+          word = position[2];
+          controlstep(word);
+          break;
+
+
+
+          case '2': putchar('2');
+          word = position[3];
+          controlstep(word);
+           break;
+
+
+
+          case '3': putchar('3');
+          word = position[0];
+          controlstep(word);
+          break;
+
+
+          case '4': putchar('4');
+          word = position[1];
+          controlstep(word);
+           break;
+      }
+  }
 }
-#endif
-
-///////////////////////////////////////////////////////////////////////////
-//
-// Exe 3.3 - Servos
-//
-///////////////////////////////////////////////////////////////////////////
-#if 1
-void init_ServoPWM()
-{
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB,ENABLE); // Enable clock for GPIO Port B
-    GPIO_InitTypeDef GPIO_InitStructAll; // Define typedef struct for setting pins
-
-    // Set-up pin PB3
-    // Connect Alternative function AF_1 to PB3
-    GPIO_StructInit(&GPIO_InitStructAll);
-    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_3;
-    GPIO_InitStructAll.GPIO_PuPd = GPIO_PuPd_DOWN;
     GPIO_InitStructAll.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOB, &GPIO_InitStructAll);
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource3,GPIO_AF_1); // TIM2 channel 2
