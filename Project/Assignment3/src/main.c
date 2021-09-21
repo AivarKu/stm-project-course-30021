@@ -15,12 +15,14 @@
 #include "30021_io.h"
 #include "lcd.h"
 
+#define VDDA 3.3
+
 ///////////////////////////////////////////////////////////////////////////
 //
 // Exe 3.1 - PWM
 //
 ///////////////////////////////////////////////////////////////////////////
-#if 0
+
 void init_PWM()
 {
 	// Configure TIM16 as channel 4 PWM output on pin PB6
@@ -59,6 +61,7 @@ void init_AF()
     //Sets pin y at port x to alternative function z
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource6,GPIO_AF_1);
  }
+<<<<<<< HEAD
 void initPins ()
 {
     GPIO_InitTypeDef GPIO_InitStructAll;
@@ -132,6 +135,9 @@ void controlstep (char word)
 
 }
 
+=======
+#if 0
+>>>>>>> f8cee22 (completed PWM->DC converter, task 3.2)
 int main(void)
 {
     SystemInit();
@@ -143,6 +149,7 @@ int main(void)
     char position[4] = {0b0101, 0b1001, 0b1010, 0b0110};
     char word;
 
+<<<<<<< HEAD
 
   while(1)
   {
@@ -152,6 +159,131 @@ int main(void)
           word = position[2];
           controlstep(word);
           break;
+=======
+    while(1)
+    {
+        for(int i = 0; i < 200000; i++);
+    }
+}
+#endif
+///////////////////////////////////////////////////////////////////////////
+//
+// Exe 3.2
+//
+///////////////////////////////////////////////////////////////////////////
+
+void init_ADC1(void)
+{
+    // Enable clocks for peripherals
+    RCC_ADCCLKConfig(RCC_ADC12PLLCLK_Div4);             // Set ADC clk to sys_clk/8
+    RCC_AHBPeriphClockCmd(ADC1, ENABLE);                // Enable clocking for ADC1
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE); // Enable clocking for GPIOC
+
+    GPIO_InitTypeDef GPIO_InitStructAll; // Define typedef struct for setting pins
+
+    // Configure pin PC0 as analog input
+    GPIO_StructInit(&GPIO_InitStructAll);
+    GPIO_InitStructAll.GPIO_Mode = GPIO_Mode_AN;
+    GPIO_InitStructAll.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructAll.GPIO_PuPd = GPIO_PuPd_DOWN;
+    GPIO_InitStructAll.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructAll);
+
+    // Configure ADC1 peripheral
+    ADC_InitTypeDef  ADC_InitStruct;
+    ADC_StructInit(&ADC_InitStruct);
+    ADC_InitStruct.ADC_ContinuousConvMode = ADC_ContinuousConvMode_Disable;
+    ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b;
+    ADC_InitStruct.ADC_DataAlign = ADC_DataAlign_Right;
+    ADC_Init(ADC1, &ADC_InitStruct);
+
+    // Calibrate ADC
+    ADC_VoltageRegulatorCmd(ADC1,ENABLE);   // set internal reference voltage source and wait
+    for(uint32_t i = 0; i<10000;i++);       //Wait for at least 10uS before continuing...
+
+    ADC_SelectCalibrationMode(ADC1,ADC_CalibrationMode_Single);
+    ADC_StartCalibration(ADC1);
+
+    while(ADC_GetCalibrationStatus(ADC1)){}
+    for(uint32_t i = 0; i<100;i++);
+
+    // Enable ADC
+    ADC_Cmd(ADC1,ENABLE);
+    while(!ADC_GetFlagStatus(ADC1,ADC_FLAG_RDY)){}
+
+}
+
+uint16_t ADC_measure_PA2()
+{
+    ADC_RegularChannelConfig(ADC1, 6, 1, ADC_SampleTime_1Cycles5); //  Select ADC channel
+    ADC_StartConversion(ADC1); // Start ADC read
+    while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == 0); // Wait for ADC read
+    return ADC_GetConversionValue(ADC1); // Read the ADC value
+}
+
+
+#if 1
+int main(void)
+{
+    SystemInit();
+
+    char line1 [128];
+    char line2 [128];
+
+    uint16_t measurement;
+    float m2;
+
+    init_usb_uart(9600);
+    init_spi_lcd();
+    init_AF();  // Connect pin PA6 to TIM16 channel 1
+    init_PWM(); // Init PWM using TIM16 on channel 1
+
+
+    init_ADC1();
+
+
+
+    uint8_t fbuffer[LCD_BUFF_SIZE];         // Buffer to store LCD display
+    memset(fbuffer, 0x00, LCD_BUFF_SIZE);   // Initialize array
+
+    sprintf(line1, "HELLO");
+    sprintf(line2, "THERE");
+    lcd_write_string((uint8_t*)line1, fbuffer, 0, 0);
+    //lcd_write_string((uint8_t*)line2, fbuffer, 0, 1);
+    lcd_push_buffer(fbuffer);
+
+
+    while(1)
+    {
+        measurement = ADC_measure_PA2();
+        m2 = (float)measurement*3.3/4096.0;
+        sprintf(line1, "%.3f V", m2);
+        sprintf(line2, "Duty: %d", TIM16->CCR1);
+        lcd_write_string((uint8_t*)line1, fbuffer, 0, 0);
+        lcd_write_string((uint8_t*)line2, fbuffer, 0, 1);
+        lcd_push_buffer(fbuffer);
+
+        if(m2 > 1.1)
+            TIM16->CCR1--;
+
+        if(m2 < 0.9)
+            TIM16->CCR1++;
+
+    }
+}
+#endif
+
+///////////////////////////////////////////////////////////////////////////
+//
+// Exe 3.3 - Servos
+//
+///////////////////////////////////////////////////////////////////////////
+#if 0
+void init_ServoPWM()
+{
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB,ENABLE); // Enable clock for GPIO Port B
+    GPIO_InitTypeDef GPIO_InitStructAll; // Define typedef struct for setting pins
+>>>>>>> f8cee22 (completed PWM->DC converter, task 3.2)
 
 
 
@@ -319,3 +451,5 @@ int main(void)
     }
 }
 #endif
+
+
