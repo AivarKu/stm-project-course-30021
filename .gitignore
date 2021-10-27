@@ -8,6 +8,7 @@ Documentation/*
 !Project/Assignment4
 !Project/Assignment5
 !Project/Assignment6
+!Project/FinalProject
 Project/Assignment0/*
 Project/Assignment1/*
 Project/Assignment2/*
@@ -15,6 +16,7 @@ Project/Assignment3/*
 Project/Assignment4/*
 Project/Assignment5/*
 Project/Assignment6/*
+Project/FinalProject/*
 !Project/Assignment0/src
 !Project/Assignment0/inc
 !Project/Assignment1/src
@@ -25,4 +27,4 @@ Project/Assignment6/*
 !Project/Assignment3/inc
 !Project/Assignment4/Core
 !Project/Assignment5/Core
-!Project/Assignment6/Core
+!Project/FinalProject/Core
