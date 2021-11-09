@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 /* USER CODE END Includes */
 
@@ -76,56 +75,6 @@ void flashPrint()
 {
 
 }
-
-void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
-{
-	tx_data[0] = 0x80;
-	tx_data[1] = 0x01;
-	tx_data[2] = 0x00;
-
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 3, 0xFFFFFFFF);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-	while(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9));
-	tx_data[0] = 0x00;
-
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 1, 0xFFFFFFFF);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-	while(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9));
-	tx_data[0] = 0xFF;
-	tx_data[1] = 0xFF;
-	tx_data[2] = 0xFF;
-
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 6, 0xFFFFFFFF);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-	uint32_t distanceWord = (rx_data[4] << 24) | (rx_data[3] << 16) | (rx_data[2] << 8) | (rx_data[1]);
-
-	char line1 [500];
-	sprintf(line1, "%f\n",(float)distanceWord/4194304);
-	debugPrintln(&huart2, line1);
-
-	HAL_Delay(50);
-}
-
-void stepStepper(uint8_t stepperIndx, uint8_t stepperWave[4][4])
-{
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, stepperWave[0][stepperIndx]);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, stepperWave[1][stepperIndx]);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, stepperWave[2][stepperIndx]);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, stepperWave[3][stepperIndx]);
-
-	stepperIndx++;
-	if (stepperIndx == 4)
-		stepperIndx = 0;
-
-	HAL_Delay(100);
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -160,14 +109,18 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t tx_data[8];
+
+  uint8_t* tx_data;
   uint8_t rx_data[8];
 
-  uint8_t stepperIndx = 0;
-  uint8_t stepperWave[4][4] = { {1,0,1,0},
-							    {0,1,1,0},
-								{0,1,0,1},
-								{1,0,0,1} };
+  tx_data = (uint8_t*)malloc(7*sizeof(uint8_t));
+  tx_data[0] = 0x80;
+  tx_data[1] = 0x01;
+  tx_data[2] = 0xFF;
+  tx_data[3] = 0xFF;
+  tx_data[4] = 0xFF;
+  tx_data[5] = 0xFF;
+  tx_data[6] = 0xFF;
 
   //UART Code
   #define RX_BUFFER_SIZE 60
@@ -218,7 +171,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-<<<<<<< HEAD
     #endif
 
     #if 1
@@ -252,10 +204,6 @@ int main(void)
     #endif
 
 
-=======
-	//doDistanceMeasurement(tx_data, rx_data);
-	stepStepper(stepperIndx, stepperWave);
->>>>>>> Added Laser finder to Final Project
   }
   /* USER CODE END 3 */
 }
@@ -273,12 +221,13 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -425,30 +374,12 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOF_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-<<<<<<< HEAD
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-=======
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : PC0 PC1 PC2 PC3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
->>>>>>> Added Laser finder to Final Project
 
   /*Configure GPIO pin : PB12 */
   GPIO_InitStruct.Pin = GPIO_PIN_12;

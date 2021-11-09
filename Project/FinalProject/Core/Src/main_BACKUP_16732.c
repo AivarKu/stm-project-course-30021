@@ -72,11 +72,12 @@ void debugPrintln(UART_HandleTypeDef *huart, char _out[])
   HAL_UART_Transmit(huart, (uint8_t *) newline, 2, 10);
 }
 
+<<<<<<< HEAD
 void flashPrint()
 {
 
 }
-
+=======
 void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
 {
 	tx_data[0] = 0x80;
@@ -126,6 +127,9 @@ void stepStepper(uint8_t stepperIndx, uint8_t stepperWave[4][4])
 	HAL_Delay(100);
 }
 
+
+
+>>>>>>> Added Laser finder to Final Project
 /* USER CODE END 0 */
 
 /**

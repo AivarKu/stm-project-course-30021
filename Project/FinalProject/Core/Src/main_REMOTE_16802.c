@@ -35,8 +35,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-char UART_RX_buffer[64] = {'\0'};
-char UART_TX_buffer[64] = {'\0'};
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,9 +43,9 @@ char UART_TX_buffer[64] = {'\0'};
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart1;
-UART_HandleTypeDef huart2;
 SPI_HandleTypeDef hspi2;
+
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -56,7 +54,6 @@ SPI_HandleTypeDef hspi2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
@@ -70,11 +67,6 @@ void debugPrintln(UART_HandleTypeDef *huart, char _out[])
   HAL_UART_Transmit(huart, (uint8_t *) _out, strlen(_out), 10000);
   char newline[2] = "\r\n";
   HAL_UART_Transmit(huart, (uint8_t *) newline, 2, 10);
-}
-
-void flashPrint()
-{
-
 }
 
 void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
@@ -126,6 +118,8 @@ void stepStepper(uint8_t stepperIndx, uint8_t stepperWave[4][4])
 	HAL_Delay(100);
 }
 
+
+
 /* USER CODE END 0 */
 
 /**
@@ -154,9 +148,8 @@ int main(void)
 
   /* USER CODE END SysInit */
 
-   /* Initialize all configured peripherals */
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
@@ -169,93 +162,17 @@ int main(void)
 								{0,1,0,1},
 								{1,0,0,1} };
 
-  //UART Code
-  #define RX_BUFFER_SIZE 60
-#if 0
-  // Commands for OpenLog
-  
-  char arr2[] = "new doc4.txt\r";
-  char arr3[] = "append doc4.txt\r";
-  char arr4[] = "Digital Intrumentation is my passion";
-  char arr5[] = "read doc4.txt\r";
-  char special = 26; // OpenLog special character
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-  // Setting up UART receive interrupt
-  HAL_UART_Receive_IT(&huart1, UART_RX_buffer, RX_BUFFER_SIZE);
-
-  // Entering OpenLog command mode
-  for(int i = 0; i < 3; i++)
-    HAL_UART_Transmit(&huart1, &special, sizeof(special), 10);
-
-  // Delay for timing purpouses
-  HAL_Delay(15);
-
-// Creating new file "doc4.txt" and writing some text to it
-
-  // HAL_UART_Transmit(&huart1, arr2, sizeof(arr2), 100);
-  //  HAL_Delay(15);
-  HAL_UART_Transmit(&huart1, arr3, sizeof(arr3), 100);
-   HAL_Delay(15);
-  HAL_UART_Transmit(&huart1, arr4, sizeof(arr4), 200);
-   HAL_Delay(15);
-  HAL_UART_Transmit(&huart1, &special, sizeof(special), 10);
-#endif
-
-// Reading the text file
-#if 0
-  HAL_UART_Transmit(&huart1, arr5, sizeof(arr5), 100);
-#endif
-
   while (1)
   {
-    #if 0
-    HAL_Delay(10);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-<<<<<<< HEAD
-    #endif
-
-    #if 1
-    tx_data[0] = 0x80;
-    tx_data[1] = 0x01;
-
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 2, 0xFFFFFFFF);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-    while(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9));
-    tx_data[0] = 0x00;
-
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 1, 0xFFFFFFFF);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-    while(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9));
-    tx_data[0] = 0xFF;
-    tx_data[1] = 0xFF;
-
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 6, 0xFFFFFFFF);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-    uint32_t distanceWord = (rx_data[4] << 24) | (rx_data[3] << 16) | (rx_data[2] << 8) | (rx_data[1]);
-
-    char line1 [500];
-    sprintf(line1, "Distance in meters: %f\n",(float)distanceWord/4194304);
-    debugPrintln(&huart2, line1);
-    #endif
-
-
-=======
 	//doDistanceMeasurement(tx_data, rx_data);
 	stepStepper(stepperIndx, stepperWave);
->>>>>>> Added Laser finder to Final Project
   }
   /* USER CODE END 3 */
 }
@@ -268,7 +185,6 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -293,12 +209,6 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
-  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
@@ -341,41 +251,6 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
-
-}
-
-/**
-  * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART1_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART1_Init 0 */
-
-  /* USER CODE END USART1_Init 0 */
-
-  /* USER CODE BEGIN USART1_Init 1 */
-
-  /* USER CODE END USART1_Init 1 */
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_RTS;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART1_Init 2 */
-
-  /* USER CODE END USART1_Init 2 */
 
 }
 
@@ -427,13 +302,6 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-<<<<<<< HEAD
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-=======
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -448,7 +316,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
->>>>>>> Added Laser finder to Final Project
 
   /*Configure GPIO pin : PB12 */
   GPIO_InitStruct.Pin = GPIO_PIN_12;
@@ -465,15 +332,7 @@ static void MX_GPIO_Init(void)
 
 }
 
-
 /* USER CODE BEGIN 4 */
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  HAL_UART_Transmit(&huart2, UART_RX_buffer, RX_BUFFER_SIZE, 100);
-  HAL_UART_Receive_IT(&huart1, UART_RX_buffer, RX_BUFFER_SIZE);
-    
-}
 
 /* USER CODE END 4 */
 
