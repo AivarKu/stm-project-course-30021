@@ -173,7 +173,7 @@ int main(void)
   #define RX_BUFFER_SIZE 60
 #if 0
   // Commands for OpenLog
-  
+
   char arr2[] = "new doc4.txt\r";
   char arr3[] = "append doc4.txt\r";
   char arr4[] = "Digital Intrumentation is my passion";
@@ -218,7 +218,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-<<<<<<< HEAD
     #endif
 
     #if 1
@@ -252,10 +251,6 @@ int main(void)
     #endif
 
 
-=======
-	//doDistanceMeasurement(tx_data, rx_data);
-	stepStepper(stepperIndx, stepperWave);
->>>>>>> Added Laser finder to Final Project
   }
   /* USER CODE END 3 */
 }
@@ -427,13 +422,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-<<<<<<< HEAD
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-=======
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -448,7 +440,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
->>>>>>> Added Laser finder to Final Project
 
   /*Configure GPIO pin : PB12 */
   GPIO_InitStruct.Pin = GPIO_PIN_12;
@@ -470,9 +461,9 @@ static void MX_GPIO_Init(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  HAL_UART_Transmit(&huart2, UART_RX_buffer, RX_BUFFER_SIZE, 100);
-  HAL_UART_Receive_IT(&huart1, UART_RX_buffer, RX_BUFFER_SIZE);
-    
+  HAL_UART_Transmit(&huart2, (uint8_t*)UART_RX_buffer, RX_BUFFER_SIZE, 100);
+  HAL_UART_Receive_IT(&huart1, (uint8_t*)UART_RX_buffer, RX_BUFFER_SIZE);
+
 }
 
 /* USER CODE END 4 */

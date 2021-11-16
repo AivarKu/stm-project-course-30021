@@ -28,3 +28,5 @@ Project/FinalProject/*
 !Project/Assignment4/Core
 !Project/Assignment5/Core
 !Project/FinalProject/Core
+!Project/FinalProject/DI5.ioc
+!Project/FinalProject/STM32F302R8TX_FLASH.ld
