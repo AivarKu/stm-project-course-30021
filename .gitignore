@@ -30,3 +30,4 @@ Project/FinalProject/*
 !Project/FinalProject/Core
 !Project/FinalProject/DI5.ioc
 !Project/FinalProject/STM32F302R8TX_FLASH.ld
+!Project/FinalProject.m
