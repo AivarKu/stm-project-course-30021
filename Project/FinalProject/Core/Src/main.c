@@ -45,9 +45,13 @@ char UART_TX_buffer[64] = {'\0'};
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi2;
+
+TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim16;
+
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
-SPI_HandleTypeDef hspi2;
 
 /* USER CODE BEGIN PV */
 
@@ -59,6 +63,8 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM16_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -112,19 +118,6 @@ void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
 	HAL_Delay(50);
 }
 
-void stepStepper(uint8_t stepperIndx, uint8_t stepperWave[4][4])
-{
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, stepperWave[0][stepperIndx]);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, stepperWave[1][stepperIndx]);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, stepperWave[2][stepperIndx]);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, stepperWave[3][stepperIndx]);
-
-	stepperIndx++;
-	if (stepperIndx == 4)
-		stepperIndx = 0;
-
-	HAL_Delay(100);
-}
 
 /* USER CODE END 0 */
 
@@ -154,20 +147,17 @@ int main(void)
 
   /* USER CODE END SysInit */
 
-   /* Initialize all configured peripherals */
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_SPI2_Init();
+  MX_TIM16_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   uint8_t tx_data[8];
   uint8_t rx_data[8];
 
-  uint8_t stepperIndx = 0;
-  uint8_t stepperWave[4][4] = { {1,0,1,0},
-							    {0,1,1,0},
-								{0,1,0,1},
-								{1,0,0,1} };
 
   //UART Code
   #define RX_BUFFER_SIZE 60
@@ -220,7 +210,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
     #endif
 
-    #if 1
+    #if 0
     tx_data[0] = 0x80;
     tx_data[1] = 0x01;
 
@@ -268,12 +258,13 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -291,8 +282,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_TIM16;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
+  PeriphClkInit.Tim16ClockSelection = RCC_TIM16CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -336,6 +328,77 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 64;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 10000;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+  HAL_TIM_Base_Start_IT(&htim6);
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
+
+  /* USER CODE BEGIN TIM16_Init 0 */
+
+  /* USER CODE END TIM16_Init 0 */
+
+  /* USER CODE BEGIN TIM16_Init 1 */
+
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 64;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 28124;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
+  //HAL_TIM_Base_Start(&htim16);
+  HAL_TIM_Base_Start_IT(&htim16);
+  /* USER CODE END TIM16_Init 2 */
 
 }
 
@@ -419,30 +482,36 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+  HAL_GPIO_WritePin(GPIOC, Stepper2P2_Pin|Stepper1P2_Pin|Stepper1P1_Pin|Stepper1P4_Pin
+                          |Stepper2P3_Pin|Stepper1P3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12|GPIO_PIN_7, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(Stepper2P1_GPIO_Port, Stepper2P1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PC0 PC1 PC2 PC3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Stepper2P4_GPIO_Port, Stepper2P4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : Stepper2P2_Pin Stepper1P2_Pin Stepper1P1_Pin Stepper1P4_Pin
+                           Stepper2P3_Pin Stepper1P3_Pin */
+  GPIO_InitStruct.Pin = Stepper2P2_Pin|Stepper1P2_Pin|Stepper1P1_Pin|Stepper1P4_Pin
+                          |Stepper2P3_Pin|Stepper1P3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB12 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  /*Configure GPIO pins : PB12 PB7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -454,8 +523,21 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-}
+  /*Configure GPIO pin : Stepper2P1_Pin */
+  GPIO_InitStruct.Pin = Stepper2P1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Stepper2P1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : Stepper2P4_Pin */
+  GPIO_InitStruct.Pin = Stepper2P4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Stepper2P4_GPIO_Port, &GPIO_InitStruct);
+
+}
 
 /* USER CODE BEGIN 4 */
 
@@ -464,6 +546,44 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   HAL_UART_Transmit(&huart2, (uint8_t*)UART_RX_buffer, RX_BUFFER_SIZE, 100);
   HAL_UART_Receive_IT(&huart1, (uint8_t*)UART_RX_buffer, RX_BUFFER_SIZE);
 
+}
+
+void stepStepper1()
+{
+	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
+								{1,1,0,0},
+								{0,1,1,0},
+								{0,0,1,1} };
+
+	uint8_t stepperHalfStep[8][4] = { {1,0,0,0},
+									{1,1,0,0},
+									{0,1,0,0},
+									{0,1,1,0},
+									{0,0,1,0},
+									{0,0,1,1},
+									{0,0,0,1},
+									{1,0,0,1}};
+
+
+	static uint8_t stepperIndx = 0;
+	HAL_GPIO_WritePin(Stepper1P1_GPIO_Port, Stepper1P1_Pin, stepperFullStep[stepperIndx][0]);
+	HAL_GPIO_WritePin(Stepper1P2_GPIO_Port, Stepper1P2_Pin, stepperFullStep[stepperIndx][1]);
+	HAL_GPIO_WritePin(Stepper1P3_GPIO_Port, Stepper1P3_Pin, stepperFullStep[stepperIndx][2]);
+	HAL_GPIO_WritePin(Stepper1P4_GPIO_Port, Stepper1P4_Pin, stepperFullStep[stepperIndx][3]);
+
+	stepperIndx++;
+	if (stepperIndx == 4)
+		stepperIndx = 0;
+
+}
+
+
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim6){
+		stepStepper1();
+	}
 }
 
 /* USER CODE END 4 */

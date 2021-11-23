@@ -58,6 +58,22 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Stepper2P2_Pin GPIO_PIN_13
+#define Stepper2P2_GPIO_Port GPIOC
+#define Stepper1P2_Pin GPIO_PIN_2
+#define Stepper1P2_GPIO_Port GPIOC
+#define Stepper1P1_Pin GPIO_PIN_3
+#define Stepper1P1_GPIO_Port GPIOC
+#define Stepper2P1_Pin GPIO_PIN_15
+#define Stepper2P1_GPIO_Port GPIOA
+#define Stepper1P4_Pin GPIO_PIN_10
+#define Stepper1P4_GPIO_Port GPIOC
+#define Stepper2P3_Pin GPIO_PIN_11
+#define Stepper2P3_GPIO_Port GPIOC
+#define Stepper1P3_Pin GPIO_PIN_12
+#define Stepper1P3_GPIO_Port GPIOC
+#define Stepper2P4_Pin GPIO_PIN_2
+#define Stepper2P4_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
