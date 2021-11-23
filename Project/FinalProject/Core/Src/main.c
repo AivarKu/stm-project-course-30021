@@ -48,7 +48,6 @@ char UART_TX_buffer[64] = {'\0'};
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim6;
-TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -63,7 +62,6 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_TIM16_Init(void);
 static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
@@ -115,9 +113,12 @@ void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
 	sprintf(line1, "%f\n",(float)distanceWord/4194304);
 	debugPrintln(&huart2, line1);
 
-	HAL_Delay(50);
 }
 
+volatile int stepactiveHerisontal = 0;
+volatile int StepperHorisontalDirection = 1;
+volatile int stepactiveVertical = 0;
+volatile int StepperVerticalDirection = 1;
 
 /* USER CODE END 0 */
 
@@ -134,7 +135,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -152,12 +154,14 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_SPI2_Init();
-  MX_TIM16_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   uint8_t tx_data[8];
   uint8_t rx_data[8];
-
+  uint8_t once = 1;
+  uint8_t stepperVetical = 0;
+  uint8_t stepperHorisontal = 0;
+  uint8_t stepperGoingHome = 0;
 
   //UART Code
   #define RX_BUFFER_SIZE 60
@@ -210,35 +214,78 @@ int main(void)
     /* USER CODE BEGIN 3 */
     #endif
 
-    #if 0
-    tx_data[0] = 0x80;
-    tx_data[1] = 0x01;
+   doDistanceMeasurement(tx_data, rx_data);
 
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 2, 0xFFFFFFFF);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
 
-    while(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9));
-    tx_data[0] = 0x00;
+   if(once){
+	   stepStepper1(1); //Top stepper
+	   once = 0;
+   }
+	if(!stepperGoingHome)
+	{
+	   if (StepperHorisontalDirection)
+	   {
+		   if(stepperHorisontal < 60)
+		   {
+			   stepactiveHerisontal = 1;
+			   stepperHorisontal++;
+		   }
+		   else
+		   {
+			   if(stepperVetical == 16){
+				   stepperGoingHome = 1;
+			   }
+			   else
+			   {
+				   StepperHorisontalDirection = 0;
+				   StepperVerticalDirection = 1;
+				   stepactiveVertical = 1;
+				   stepperVetical++;
+			   }
+		   }
+	   }
+	   else
+	   {
+		   if(stepperHorisontal > 0)
+		   {
+			   stepactiveHerisontal = 1;
+			   stepperHorisontal--;
+		   }
+		   else
+		   {
+			   StepperHorisontalDirection = 1;
+			   StepperVerticalDirection = 1;
+			   stepactiveVertical = 1;
+			   stepperVetical++;
+		   }
+	   }
+	}
+	else
+	{
+		   if(stepperHorisontal > 0)
+		   {
+			   stepactiveHerisontal = 1;
+			   stepperHorisontal--;
+			   StepperHorisontalDirection = 0;
+		   }
+		   else if(stepperVetical > 0)
+		   {
+			   StepperVerticalDirection = 0;
+			   stepactiveVertical = 1;
+			   stepperVetical--;
+		   }
+		   else{
+			   stepperGoingHome = 0;
+			   StepperHorisontalDirection = 1;
+			   StepperVerticalDirection = 1;
+		   }
+	}
 
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 1, 0xFFFFFFFF);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+   HAL_TIM_Base_Start_IT(&htim6);
+   while(stepactiveHerisontal | stepactiveVertical){
 
-    while(!HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_9));
-    tx_data[0] = 0xFF;
-    tx_data[1] = 0xFF;
-
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, 6, 0xFFFFFFFF);
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-
-    uint32_t distanceWord = (rx_data[4] << 24) | (rx_data[3] << 16) | (rx_data[2] << 8) | (rx_data[1]);
-
-    char line1 [500];
-    sprintf(line1, "Distance in meters: %f\n",(float)distanceWord/4194304);
-    debugPrintln(&huart2, line1);
-    #endif
+   }
+   HAL_TIM_Base_Stop_IT(&htim6);
 
 
   }
@@ -282,9 +329,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_TIM16;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
-  PeriphClkInit.Tim16ClockSelection = RCC_TIM16CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -351,7 +397,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 64;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 10000;
+  htim6.Init.Period = 28124;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -364,41 +410,7 @@ static void MX_TIM6_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM6_Init 2 */
-  HAL_TIM_Base_Start_IT(&htim6);
   /* USER CODE END TIM6_Init 2 */
-
-}
-
-/**
-  * @brief TIM16 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM16_Init(void)
-{
-
-  /* USER CODE BEGIN TIM16_Init 0 */
-
-  /* USER CODE END TIM16_Init 0 */
-
-  /* USER CODE BEGIN TIM16_Init 1 */
-
-  /* USER CODE END TIM16_Init 1 */
-  htim16.Instance = TIM16;
-  htim16.Init.Prescaler = 64;
-  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim16.Init.Period = 28124;
-  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim16.Init.RepetitionCounter = 0;
-  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM16_Init 2 */
-  //HAL_TIM_Base_Start(&htim16);
-  HAL_TIM_Base_Start_IT(&htim16);
-  /* USER CODE END TIM16_Init 2 */
 
 }
 
@@ -548,14 +560,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 }
 
-void stepStepper1()
+void stepStepper1(int direction)
 {
 	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
 								{1,1,0,0},
 								{0,1,1,0},
 								{0,0,1,1} };
 
-	uint8_t stepperHalfStep[8][4] = { {1,0,0,0},
+	uint8_t stepperHalfStep[8][4] = {{1,0,0,0},
 									{1,1,0,0},
 									{0,1,0,0},
 									{0,1,1,0},
@@ -571,9 +583,63 @@ void stepStepper1()
 	HAL_GPIO_WritePin(Stepper1P3_GPIO_Port, Stepper1P3_Pin, stepperFullStep[stepperIndx][2]);
 	HAL_GPIO_WritePin(Stepper1P4_GPIO_Port, Stepper1P4_Pin, stepperFullStep[stepperIndx][3]);
 
-	stepperIndx++;
-	if (stepperIndx == 4)
-		stepperIndx = 0;
+
+	if(direction)
+	{
+		if (stepperIndx == 3)
+			stepperIndx = 0;
+		else
+			stepperIndx++;
+	}
+	else
+	{
+		if (stepperIndx == 0)
+			stepperIndx = 3;
+		else
+			stepperIndx--;
+	}
+
+
+}
+
+void stepStepper2(int direction)
+{
+	static uint8_t stepperIndx = 0;
+	if(direction)
+	{
+		if (stepperIndx == 3)
+			stepperIndx = 0;
+		else
+			stepperIndx++;
+	}
+	else
+	{
+		if (stepperIndx == 0)
+			stepperIndx = 3;
+		else
+			stepperIndx--;
+	}
+	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
+								{1,1,0,0},
+								{0,1,1,0},
+								{0,0,1,1} };
+
+	uint8_t stepperHalfStep[8][4] = { {1,0,0,0},
+									{1,1,0,0},
+									{0,1,0,0},
+									{0,1,1,0},
+									{0,0,1,0},
+									{0,0,1,1},
+									{0,0,0,1},
+									{1,0,0,1}};
+
+	HAL_GPIO_WritePin(Stepper2P1_GPIO_Port, Stepper2P1_Pin, stepperFullStep[stepperIndx][0]);
+	HAL_GPIO_WritePin(Stepper2P2_GPIO_Port, Stepper2P2_Pin, stepperFullStep[stepperIndx][1]);
+	HAL_GPIO_WritePin(Stepper2P3_GPIO_Port, Stepper2P3_Pin, stepperFullStep[stepperIndx][2]);
+	HAL_GPIO_WritePin(Stepper2P4_GPIO_Port, Stepper2P4_Pin, stepperFullStep[stepperIndx][3]);
+
+
+
 
 }
 
@@ -582,7 +648,15 @@ void stepStepper1()
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim6){
-		stepStepper1();
+		if(stepactiveHerisontal)
+		{
+			stepStepper2(StepperHorisontalDirection);
+			stepactiveHerisontal = 0;
+		}
+		else if(stepactiveVertical){
+			stepStepper1(StepperVerticalDirection); //Top stepper
+			stepactiveVertical = 0;
+		}
 	}
 }
 

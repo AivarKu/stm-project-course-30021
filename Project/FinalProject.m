@@ -3,18 +3,18 @@ close all
 clear
 format compact
 %% Created on 27.10.2021
-% COM_PORT = '/dev/ttyACM1';
-% 
-% oldSerial = instrfind('Port', COM_PORT); 
-% if (~isempty(oldSerial))  % if the set of such objects is not(~) empty 
-%     disp('WARNING:  COM in use.  Closing.') 
-%     delete(oldSerial) 
-% end 
-% 
-% ser = serial(COM_PORT, 'baudrate', 9600, 'terminator', 'CR');
-% fopen(ser);
+COM_PORT = 'COM4';
 
-if 1
+oldSerial = instrfind('Port', COM_PORT); 
+if (~isempty(oldSerial))  % if the set of such objects is not(~) empty 
+    disp('WARNING:  COM in use.  Closing.') 
+    delete(oldSerial) 
+end 
+
+ser = serial(COM_PORT, 'baudrate', 9600, 'terminator', 'CR');
+fopen(ser);
+
+if 0
     % 2D arc scanner
     figure
     subplot(2,2,1)
@@ -27,10 +27,11 @@ if 1
     end
     
 else
+    disp('1D lidar stared')
     % 1D radar
     polarscatter(0,0)
     hold on
-    rax = [0 0.4];
+    rax = [0 0.9];
 
     theta = 0:1e-1:2*pi;
     thetaLen = length(theta);
@@ -62,5 +63,5 @@ else
     end
 end
 
-% delete(ser)
-% clear ser 
+delete(ser)
+clear ser 
