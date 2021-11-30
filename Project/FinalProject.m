@@ -3,7 +3,7 @@ close all
 clear
 format compact
 %% Created on 27.10.2021
-COM_PORT = 'COM4';
+COM_PORT = '/dev/ttyACM1';
 
 oldSerial = instrfind('Port', COM_PORT);
 if (~isempty(oldSerial))  % if the set of such objects is not(~) empty
@@ -19,40 +19,40 @@ if 1
     figure
 % %     subplot(2,2,1)
     scatter3(0,0,0,'b*')
-    axis([-0.5 0.5 -0.5 0.5 -0.5 0.5])
+    axis(1*[-1 1 -1 1 -1 1])
     xlabel('x')
     ylabel('y')
     zlabel('z')
     hold on
 
     %Angles
-    N1 = 40;
+    N1 = 100;
     N2 = 10;
-    N1deg = linspace(3*pi/4,pi/4,N1);
-    N2deg = linspace(3*pi/4,pi/4,N2);
 
+    N1deg = linspace(-45,45,N1);
+    N2deg = linspace(-30,30,N2);
 
     points = zeros(N1*N2,3);
 
-    while(1)
+     while(1)
         N = ser.BytesAvailable();
         while(N == 0)
             N = ser.BytesAvailable();
         end
 
-        data = fscanf(ser, '%f %d %d\n');
-        r = data(1);
-        n1 = data(2)+1;
-        n2 = data(3)+1;
+        a = fscanf(ser, '%f %d %d');
+        r = a(1);
+        n1 = a(2)+1;
+        n2 = a(3)+1;
         if abs(r) < 1e-4
            continue;
         end
-        
-        th1 = N1deg(n1);
-        th2 = N2deg(n2);
-        x = r*sin(th1)*cos(th2);
-        y = r*sin(th1)*sin(th2);
-        z = r*cos(th1);
+
+        th2 = 90-N1deg(n1);
+        th1 = 90-N2deg(n2);
+        x = r*sind(th1)*cosd(th2);
+        y = r*sind(th1)*sind(th2);
+        z = r*cosd(th1);
 %         plot3(x,y,z,'bo')
 %         points(k,1) = x;
 %         points(k,2) = y;
