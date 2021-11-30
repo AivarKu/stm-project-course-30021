@@ -3,7 +3,7 @@ close all
 clear
 format compact
 %% Created on 27.10.2021
-COM_PORT = '/dev/ttyACM1';
+COM_PORT = 'COM4';
 
 oldSerial = instrfind('Port', COM_PORT);
 if (~isempty(oldSerial))  % if the set of such objects is not(~) empty
