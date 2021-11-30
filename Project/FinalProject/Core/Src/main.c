@@ -81,6 +81,22 @@ void flashPrint()
 
 }
 
+volatile uint8_t stepperAngleVertical = 0;
+volatile uint8_t stepperAngleHorisontal = 0;
+volatile int stepactiveHerisontal = 0;
+volatile int stepactiveVertical = 0;
+typedef enum {
+	INIT,
+	GO_RIGHT,
+	GO_UP_RIGHT,
+	GO_UP_LEFT,
+	GO_LEFT,
+	GO_LEFT_EDGE,
+	GO_DOWN_EDGE
+} States;
+States currentstate = INIT;
+
+
 void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
 {
 	tx_data[0] = 0x80;
@@ -110,15 +126,157 @@ void doDistanceMeasurement(uint8_t* tx_data, uint8_t* rx_data)
 	uint32_t distanceWord = (rx_data[4] << 24) | (rx_data[3] << 16) | (rx_data[2] << 8) | (rx_data[1]);
 
 	char line1 [500];
-	sprintf(line1, "%f\n",(float)distanceWord/4194304);
+	sprintf(line1, "%f %d %d\n",(float)distanceWord/4194304, stepperAngleHorisontal, stepperAngleVertical);
 	debugPrintln(&huart2, line1);
 
 }
 
-volatile int stepactiveHerisontal = 0;
-volatile int StepperHorisontalDirection = 1;
-volatile int stepactiveVertical = 0;
-volatile int StepperVerticalDirection = 1;
+void stepStepper1()
+{
+	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
+								{1,1,0,0},
+								{0,1,1,0},
+								{0,0,1,1} };
+
+	uint8_t stepperHalfStep[8][4] = {{1,0,0,0},
+									{1,1,0,0},
+									{0,1,0,0},
+									{0,1,1,0},
+									{0,0,1,0},
+									{0,0,1,1},
+									{0,0,0,1},
+									{1,0,0,1}};
+
+
+	static uint8_t stepperIndx = 0;
+	HAL_GPIO_WritePin(Stepper1P1_GPIO_Port, Stepper1P1_Pin, stepperFullStep[stepperIndx][0]);
+	HAL_GPIO_WritePin(Stepper1P2_GPIO_Port, Stepper1P2_Pin, stepperFullStep[stepperIndx][1]);
+	HAL_GPIO_WritePin(Stepper1P3_GPIO_Port, Stepper1P3_Pin, stepperFullStep[stepperIndx][2]);
+	HAL_GPIO_WritePin(Stepper1P4_GPIO_Port, Stepper1P4_Pin, stepperFullStep[stepperIndx][3]);
+
+
+	if(currentstate == GO_UP_RIGHT || currentstate == GO_UP_LEFT)
+	{
+		if (stepperIndx == 3)
+			stepperIndx = 0;
+		else
+			stepperIndx++;
+	}
+	else
+	{
+		if (stepperIndx == 0)
+			stepperIndx = 3;
+		else
+			stepperIndx--;
+	}
+
+
+}
+
+void stepStepper2()
+{
+	static uint8_t stepperIndx = 0;
+	if(currentstate == GO_RIGHT)
+	{
+		if (stepperIndx == 8)
+			stepperIndx = 0;
+		else
+			stepperIndx++;
+	}
+	else
+	{
+		if (stepperIndx == 0)
+			stepperIndx = 8;
+		else
+			stepperIndx--;
+	}
+	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
+								{1,1,0,0},
+								{0,1,1,0},
+								{0,0,1,1} };
+
+	uint8_t stepperHalfStep[8][4] = { {1,0,0,0},
+									{1,1,0,0},
+									{0,1,0,0},
+									{0,1,1,0},
+									{0,0,1,0},
+									{0,0,1,1},
+									{0,0,0,1},
+									{1,0,0,1}};
+
+	HAL_GPIO_WritePin(Stepper2P1_GPIO_Port, Stepper2P1_Pin, stepperHalfStep[stepperIndx][0]);
+	HAL_GPIO_WritePin(Stepper2P2_GPIO_Port, Stepper2P2_Pin, stepperHalfStep[stepperIndx][1]);
+	HAL_GPIO_WritePin(Stepper2P3_GPIO_Port, Stepper2P3_Pin, stepperHalfStep[stepperIndx][2]);
+	HAL_GPIO_WritePin(Stepper2P4_GPIO_Port, Stepper2P4_Pin, stepperHalfStep[stepperIndx][3]);
+
+}
+
+void controlsteppers(){
+	 switch(currentstate)
+	 {
+	 	 case INIT:
+	 		stepStepper1((int) 1);
+	 		currentstate = GO_RIGHT;
+	 	 break;
+
+	 	 case GO_RIGHT:
+			   stepactiveHerisontal = 1;
+			   stepperAngleHorisontal++;
+
+			   if(stepperAngleHorisontal > 39){
+				   if (stepperAngleVertical < 9)
+				   currentstate = GO_UP_RIGHT;
+				   else
+					   currentstate = GO_LEFT_EDGE;
+			   }
+
+		 break;
+
+	 	 case GO_UP_RIGHT:
+	 		stepactiveVertical = 1;
+	 		stepperAngleVertical++;
+	 		currentstate = GO_LEFT;
+	 	 break;
+
+	 	 case GO_LEFT:
+
+	 		stepactiveHerisontal = 1;
+	 		stepperAngleHorisontal--;
+
+	 		if(stepperAngleHorisontal == 0){
+	 			currentstate = GO_UP_LEFT;
+	 		}
+	 	break;
+
+	 	 case GO_UP_LEFT:
+	 		stepactiveVertical = 1;
+	 		stepperAngleVertical++;
+	 		currentstate = GO_RIGHT;
+	 	 break;
+
+	 	 case GO_LEFT_EDGE:
+			   stepactiveHerisontal = 1;
+			   stepperAngleHorisontal--;
+			  if(stepperAngleHorisontal == 0){
+				  currentstate = GO_DOWN_EDGE;
+			  }
+		 break;
+
+	 	 case GO_DOWN_EDGE:
+		   stepactiveVertical = 1;
+		   stepperAngleVertical--;
+		   if(stepperAngleVertical == 0){
+			   currentstate = GO_RIGHT;
+		   }
+
+	 }
+
+	   HAL_TIM_Base_Start_IT(&htim6);
+	   while(stepactiveHerisontal | stepactiveVertical){
+
+	   }
+	   HAL_TIM_Base_Stop_IT(&htim6);
+}
 
 /* USER CODE END 0 */
 
@@ -158,10 +316,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uint8_t tx_data[8];
   uint8_t rx_data[8];
-  uint8_t once = 1;
-  uint8_t stepperVetical = 0;
-  uint8_t stepperHorisontal = 0;
-  uint8_t stepperGoingHome = 0;
 
   //UART Code
   #define RX_BUFFER_SIZE 60
@@ -215,79 +369,7 @@ int main(void)
     #endif
 
    doDistanceMeasurement(tx_data, rx_data);
-
-
-   if(once){
-	   stepStepper1(1); //Top stepper
-	   once = 0;
-   }
-	if(!stepperGoingHome)
-	{
-	   if (StepperHorisontalDirection)
-	   {
-		   if(stepperHorisontal < 60)
-		   {
-			   stepactiveHerisontal = 1;
-			   stepperHorisontal++;
-		   }
-		   else
-		   {
-			   if(stepperVetical == 16){
-				   stepperGoingHome = 1;
-			   }
-			   else
-			   {
-				   StepperHorisontalDirection = 0;
-				   StepperVerticalDirection = 1;
-				   stepactiveVertical = 1;
-				   stepperVetical++;
-			   }
-		   }
-	   }
-	   else
-	   {
-		   if(stepperHorisontal > 0)
-		   {
-			   stepactiveHerisontal = 1;
-			   stepperHorisontal--;
-		   }
-		   else
-		   {
-			   StepperHorisontalDirection = 1;
-			   StepperVerticalDirection = 1;
-			   stepactiveVertical = 1;
-			   stepperVetical++;
-		   }
-	   }
-	}
-	else
-	{
-		   if(stepperHorisontal > 0)
-		   {
-			   stepactiveHerisontal = 1;
-			   stepperHorisontal--;
-			   StepperHorisontalDirection = 0;
-		   }
-		   else if(stepperVetical > 0)
-		   {
-			   StepperVerticalDirection = 0;
-			   stepactiveVertical = 1;
-			   stepperVetical--;
-		   }
-		   else{
-			   stepperGoingHome = 0;
-			   StepperHorisontalDirection = 1;
-			   StepperVerticalDirection = 1;
-		   }
-	}
-
-   HAL_TIM_Base_Start_IT(&htim6);
-   while(stepactiveHerisontal | stepactiveVertical){
-
-   }
-   HAL_TIM_Base_Stop_IT(&htim6);
-
-
+   controlsteppers();
   }
   /* USER CODE END 3 */
 }
@@ -560,88 +642,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 }
 
-void stepStepper1(int direction)
-{
-	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
-								{1,1,0,0},
-								{0,1,1,0},
-								{0,0,1,1} };
 
-	uint8_t stepperHalfStep[8][4] = {{1,0,0,0},
-									{1,1,0,0},
-									{0,1,0,0},
-									{0,1,1,0},
-									{0,0,1,0},
-									{0,0,1,1},
-									{0,0,0,1},
-									{1,0,0,1}};
-
-
-	static uint8_t stepperIndx = 0;
-	HAL_GPIO_WritePin(Stepper1P1_GPIO_Port, Stepper1P1_Pin, stepperFullStep[stepperIndx][0]);
-	HAL_GPIO_WritePin(Stepper1P2_GPIO_Port, Stepper1P2_Pin, stepperFullStep[stepperIndx][1]);
-	HAL_GPIO_WritePin(Stepper1P3_GPIO_Port, Stepper1P3_Pin, stepperFullStep[stepperIndx][2]);
-	HAL_GPIO_WritePin(Stepper1P4_GPIO_Port, Stepper1P4_Pin, stepperFullStep[stepperIndx][3]);
-
-
-	if(direction)
-	{
-		if (stepperIndx == 3)
-			stepperIndx = 0;
-		else
-			stepperIndx++;
-	}
-	else
-	{
-		if (stepperIndx == 0)
-			stepperIndx = 3;
-		else
-			stepperIndx--;
-	}
-
-
-}
-
-void stepStepper2(int direction)
-{
-	static uint8_t stepperIndx = 0;
-	if(direction)
-	{
-		if (stepperIndx == 3)
-			stepperIndx = 0;
-		else
-			stepperIndx++;
-	}
-	else
-	{
-		if (stepperIndx == 0)
-			stepperIndx = 3;
-		else
-			stepperIndx--;
-	}
-	uint8_t stepperFullStep[4][4] = { {1,0,0,1},
-								{1,1,0,0},
-								{0,1,1,0},
-								{0,0,1,1} };
-
-	uint8_t stepperHalfStep[8][4] = { {1,0,0,0},
-									{1,1,0,0},
-									{0,1,0,0},
-									{0,1,1,0},
-									{0,0,1,0},
-									{0,0,1,1},
-									{0,0,0,1},
-									{1,0,0,1}};
-
-	HAL_GPIO_WritePin(Stepper2P1_GPIO_Port, Stepper2P1_Pin, stepperFullStep[stepperIndx][0]);
-	HAL_GPIO_WritePin(Stepper2P2_GPIO_Port, Stepper2P2_Pin, stepperFullStep[stepperIndx][1]);
-	HAL_GPIO_WritePin(Stepper2P3_GPIO_Port, Stepper2P3_Pin, stepperFullStep[stepperIndx][2]);
-	HAL_GPIO_WritePin(Stepper2P4_GPIO_Port, Stepper2P4_Pin, stepperFullStep[stepperIndx][3]);
-
-
-
-
-}
 
 
 
@@ -650,11 +651,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim == &htim6){
 		if(stepactiveHerisontal)
 		{
-			stepStepper2(StepperHorisontalDirection);
+			stepStepper2();
 			stepactiveHerisontal = 0;
 		}
 		else if(stepactiveVertical){
-			stepStepper1(StepperVerticalDirection); //Top stepper
+			stepStepper1(); //Top stepper
 			stepactiveVertical = 0;
 		}
 	}

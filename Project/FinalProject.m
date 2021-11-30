@@ -14,7 +14,7 @@ end
 ser = serial(COM_PORT, 'baudrate', 9600, 'terminator', 'CR');
 fopen(ser);
 
-if 0
+if 1
     % 2D arc scanner
     figure
 % %     subplot(2,2,1)
@@ -27,47 +27,36 @@ if 0
 
     %Angles
     N1 = 40;
-    N2 = 40;
-
-    N1x = normpdf(N1,50,sqrt(100));
-    N2x = normpdf(N2,35,sqrt(100));
-
+    N2 = 10;
     N1deg = linspace(3*pi/4,pi/4,N1);
     N2deg = linspace(3*pi/4,pi/4,N2);
 
-%     figure
-%         plot(N1,N1x);
-%         grid on
-%
-    n1 = 1;
-    n2 = 1;
-
-    goingRight = 1;
 
     points = zeros(N1*N2,3);
 
-%     while(1)
-    for k = 1:1000
-        n1 = n1 + 1;
-        if n1 == N1+1
-           n1 = 1;
-           n2 = n2 + 1;
-
-           if (n2 == N2+1)
-               break
-           end
+    while(1)
+        N = ser.BytesAvailable();
+        while(N == 0)
+            N = ser.BytesAvailable();
         end
 
-        r = 0.5;
+        data = fscanf(ser, '%f %d %d\n');
+        r = data(1);
+        n1 = data(2)+1;
+        n2 = data(3)+1;
+        if abs(r) < 1e-4
+           continue;
+        end
+        
         th1 = N1deg(n1);
         th2 = N2deg(n2);
         x = r*sin(th1)*cos(th2);
         y = r*sin(th1)*sin(th2);
         z = r*cos(th1);
 %         plot3(x,y,z,'bo')
-        points(k,1) = x;
-        points(k,2) = y;
-        points(k,3) = z;
+%         points(k,1) = x;
+%         points(k,2) = y;
+%         points(k,3) = z;
         scatter3(x,y,z,'bo')
 
         drawnow()
