@@ -19,7 +19,7 @@ if 1
     figure
 % %     subplot(2,2,1)
     scatter3(0,0,0,'b*')
-    axis(1*[-1 1 -1 1 -1 1])
+    axis(1*[-0.6 0.6 -0.1 1 -1 1])
     xlabel('x')
     ylabel('y')
     zlabel('z')
@@ -27,10 +27,11 @@ if 1
 
     %Angles
     N1 = 100;
-    N2 = 10;
+    N2 = 30;
 
     N1deg = linspace(-45,45,N1);
-    N2deg = linspace(-30,30,N2);
+%     N2deg = linspace(-30,30,N2);
+    N2deg = linspace(-45,45,N2);
 
     points = zeros(N1*N2,3);
 
